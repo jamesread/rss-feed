@@ -39,10 +39,14 @@ class RefreshFeedJob implements ShouldQueue, ShouldBeUnique
         $freshPosts = $postFetcher->fetchForFeed($this->feed);
 
         foreach ($freshPosts as $post) {
-            $this->feed->posts()->updateOrCreate(
+            $post = $this->feed->posts()->updateOrCreate(
                 ['url' => $post->url],
                 $post->getAttributes(),
             );
+
+            if ($post->wasRecentlyCreated) {
+                dispatch(new FetchPostThumbnailJob($post));
+            }
         }
 
         $this->feed->last_fetched_at = time();
