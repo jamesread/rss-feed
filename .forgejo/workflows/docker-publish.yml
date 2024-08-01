@@ -28,6 +28,11 @@ jobs:
       - name: Checkout repository
         uses: https://code.forgejo.org/actions/checkout@v4
 
+      - name: Install docker
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: apt-get update && apt-get -qy install docker.io
+
       - name: Set up QEMU
         uses: https://code.forgejo.org/docker/setup-qemu-action@v3
 

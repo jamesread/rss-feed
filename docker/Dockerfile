@@ -1,11 +1,11 @@
 # NPM asset build
-FROM node:20
+FROM --platform=$BUILDPLATFORM node:20
 COPY . /app
 WORKDIR /app
 RUN npm ci && npm run build
 
 # Composer dependancies build
-FROM composer:2
+FROM --platform=$BUILDPLATFORM composer:2
 COPY . /app
 WORKDIR /app
 RUN composer install --no-dev
