@@ -8,16 +8,20 @@ on:
 
 jobs:
   laravel-tests:
-    runs-on: ubuntu-22.04
+    runs-on: docker
+    container:
+      image: node:20-bullseye
     steps:
-    - uses: shivammathur/setup-php@v2
+    - uses: https://github.com/shivammathur/setup-php@v2
       with:
         php-version: '8.3'
-    - uses: actions/checkout@v4
+    - uses: https://code.forgejo.org/actions/checkout@v4
     - name: Copy .env
       run: php -r "file_exists('.env') || copy('.env.example', '.env');"
     - name: Install Dependencies
       run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      env:
+        COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.GH_TOKEN }}"}}'
     - name: Generate key
       run: php artisan key:generate
     - name: Directory Permissions

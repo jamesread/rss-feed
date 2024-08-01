@@ -2,8 +2,6 @@
 
 A simple, opinionated, RSS feed aggregator.
 
-[![PHPUnit](https://github.com/ssddanbrown/rss/actions/workflows/phpunit.yml/badge.svg?branch=main)](https://github.com/ssddanbrown/rss/actions/workflows/phpunit.yml)
-
 ## Features
 
 The following features are built into the application:
@@ -46,19 +44,19 @@ Upon the above, it's quite likely you'll come across issues. This project was cr
 		<tr>
 			<td width="25%">
 				Card View
-				<img src="https://github.com/ssddanbrown/rss/raw/main/.github/screenshots/card-view.png">
+				<img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/card-view.png">
 			</td>
 			<td width="25%">
 				List View
-				<img src="https://github.com/ssddanbrown/rss/raw/main/.github/screenshots/list-view.png">
+				<img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/list-view.png">
 			</td>
 			<td width="25%">
 				Compact View
-				<img src="https://github.com/ssddanbrown/rss/raw/main/.github/screenshots/compact-view.png">
+				<img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/compact-view.png">
 			</td>
 			<td width="25%">
 				Dark Mode
-				<img src="https://github.com/ssddanbrown/rss/raw/main/.github/screenshots/dark-mode.png">
+				<img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/dark-mode.png">
 			</td>
 		</tr>
 	</tbody>
@@ -80,7 +78,7 @@ docker run -d \
     --restart unless-stopped \
     -p 8080:80 \
     -v /home/barry/rss:/app/storage \
-    ghcr.io/ssddanbrown/rss:latest  
+    codeberg.org/danb/rss:latest
 ```
 
 #### Docker Compose Example
@@ -92,7 +90,7 @@ In the below `docker-compose.yml` example, the application will be accessible at
 version: "2"
 services:
     rss:
-        image: ghcr.io/ssddanbrown/rss:latest
+        image: codeberg.org/danb/rss:latest
         container_name: rss
         environment:
             - APP_NAME=RSS
@@ -201,7 +199,7 @@ You will need git, PHP, composer and NodeJS installed. Installation would genera
 
 ```shell
 # Clone down and enter the project
-git clone https://github.com/ssddanbrown/rss.git
+git clone https://codeberg.org/danb/rss.git
 cd rss
 
 # Install PHP dependencies via composer
