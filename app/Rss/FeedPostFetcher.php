@@ -23,13 +23,7 @@ class FeedPostFetcher
             return [];
         }
 
-        $rssData = ltrim($feedResponse->body());
-        $tagStart = explode(' ', substr($rssData, 0, 20))[0];
-        $validStarts = ['<?xml', '<feed', '<rss'];
-        if (!in_array($tagStart, $validStarts)) {
-            return [];
-        }
-
+        $rssData = trim($feedResponse->body());
         return $this->rssParser->rssDataToPosts($rssData);
     }
 }

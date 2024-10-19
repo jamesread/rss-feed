@@ -139,6 +139,19 @@ END
         $this->assertCount(0, $posts);
     }
 
+    public function test_non_xml_content_returns_no_posts(): void
+    {
+        $parser = new RssParser();
+
+        $posts = $parser->rssDataToPosts(
+            <<<END
+Beans<p>Some text here</p>⭐⭐
+END
+        );
+
+        $this->assertCount(0, $posts);
+    }
+
     public function test_descriptions_in_html_are_parsed(): void
     {
         $parser = new RssParser();
