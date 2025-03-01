@@ -10,7 +10,7 @@
                 </svg>
             </span>
         </h4>
-        <div class="font-mono text-gray-600 dark:text-gray-500 text-xs my-1 overflow-ellipsis whitespace-nowrap w-full overflow-hidden">{{ feed.url }}</div>
+        <div class="font-mono text-gray-600 dark:text-gray-500 text-xs my-1 text-ellipsis whitespace-nowrap w-full overflow-hidden">{{ feed.url }}</div>
         <div class="flex gap-1 text-gray-600 dark:text-gray-500 text-sm flex-wrap">
             <Tag v-for="tag in feed.tags" :tag="tag" class="inline-block">{{ tag }}</Tag>
         </div>
