@@ -31,8 +31,6 @@
     </div>
 </template>
 <script>
-
-import axios from "axios";
 import Tag from "./Tag.vue";
 
 export default {
@@ -51,8 +49,11 @@ export default {
             window.location.reload();
         },
         async pollFeedStatus() {
-            const resp = await axios.get(`feed`, {params: {url: this.feed.url}});
-            if (resp?.data?.outdated) {
+            const feedUrlEncoded = encodeURIComponent(this.feed.url);
+            const resp = await fetch(`feed?url=${feedUrlEncoded}`);
+            const data = await resp.json();
+
+            if (data?.outdated) {
                 this.reloadingPoll = setTimeout(this.pollFeedStatus.bind(this), 3000);
             } else {
                 this.feed.reloading = false;
