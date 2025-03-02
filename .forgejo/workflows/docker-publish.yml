@@ -19,7 +19,7 @@ jobs:
 
     runs-on: docker
     container:
-      image: node:20-bullseye
+      image: node:22-bookworm
     permissions:
       contents: read
       packages: write

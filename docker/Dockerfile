@@ -1,5 +1,5 @@
 # NPM asset build
-FROM --platform=$BUILDPLATFORM node:20
+FROM --platform=$BUILDPLATFORM node:22
 COPY . /app
 WORKDIR /app
 RUN npm ci && npm run build
@@ -14,7 +14,7 @@ RUN composer install --no-dev
 # Main app container #
 ######################
 
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 # Copy our app files
 COPY . /app
@@ -24,11 +24,9 @@ WORKDIR /app
 ARG DEBIAN_FRONTEND=noninteractive
 RUN set -xe && \
     apt-get update -yqq && \
-    apt-get install software-properties-common curl supervisor nginx cron -yqq  && \
-    add-apt-repository ppa:ondrej/php && \
-    apt-get update -yqq && \
-    apt-get install  php8.3-cli php8.3-fpm php8.3-cgi php8.3-common php8.3-curl php8.3-mbstring \
-                     php8.3-xml php8.3-zip php8.3-gd php8.3-sqlite3 php8.3-bcmath -yqq
+    apt-get install curl supervisor nginx cron -yqq  && \
+    apt-get install php8.3-cli php8.3-fpm php8.3-cgi php8.3-common php8.3-curl php8.3-mbstring \
+                    php8.3-xml php8.3-zip php8.3-gd php8.3-sqlite3 php8.3-bcmath -yqq
 
 # Copy requirements from other containers
 COPY --from=0 /app/public/build /app/public/build
@@ -41,7 +39,7 @@ COPY --from=1 /app/vendor /app/vendor
 RUN cp docker/.env.container /app/.env && \
     cp docker/nginx.conf /etc/nginx/sites-enabled/rss.conf && \
     rm /etc/nginx/sites-enabled/default && \
-    mkdir /run/php && \
+    mkdir -p /run/php && \
     chmod +x /app/docker/run.sh && \
     crontab -u www-data /app/docker/cron && \
     php artisan key:generate && \

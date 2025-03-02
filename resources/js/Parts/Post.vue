@@ -16,7 +16,7 @@
 
         <div :class="{'flex items-center gap-5': formatList && post.thumbnail}">
             <div v-if="post.thumbnail && !formatCompact" :class="{'w-32': formatList}">
-                <a :href="post.url" target="_blank" class="block overflow-hidden rounded my-2 border dark:border-black">
+                <a :href="post.url" target="_blank" class="block overflow-hidden rounded-sm my-2 border dark:border-black">
                     <img :src="`storage/${post.thumbnail}`"
                          loading="lazy"
                          class="w-full object-cover saturate-50"
@@ -25,7 +25,7 @@
                 </a>
             </div>
 
-            <div :class="{'whitespace-nowrap overflow-ellipsis overflow-hidden': formatCompact, 'flex-1': formatList}">
+            <div :class="{'whitespace-nowrap text-ellipsis overflow-hidden': formatCompact, 'flex-1': formatList}">
                 <h3 class="font-bold text-black dark:text-gray-300" :class="{'text-lg': formatCard, 'text-md': formatList, 'inline': formatCompact}">
                     <a :href="post.url" target="_blank" class="hover:underline">{{ post.title }}</a>
                 </h3>

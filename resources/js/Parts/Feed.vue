@@ -10,7 +10,7 @@
                 </svg>
             </span>
         </h4>
-        <div class="font-mono text-gray-600 dark:text-gray-500 text-xs my-1 overflow-ellipsis whitespace-nowrap w-full overflow-hidden">{{ feed.url }}</div>
+        <div class="font-mono text-gray-600 dark:text-gray-500 text-xs my-1 text-ellipsis whitespace-nowrap w-full overflow-hidden">{{ feed.url }}</div>
         <div class="flex gap-1 text-gray-600 dark:text-gray-500 text-sm flex-wrap">
             <Tag v-for="tag in feed.tags" :tag="tag" class="inline-block">{{ tag }}</Tag>
         </div>
@@ -31,8 +31,6 @@
     </div>
 </template>
 <script>
-
-import axios from "axios";
 import Tag from "./Tag.vue";
 
 export default {
@@ -51,8 +49,11 @@ export default {
             window.location.reload();
         },
         async pollFeedStatus() {
-            const resp = await axios.get(`feed`, {params: {url: this.feed.url}});
-            if (resp?.data?.outdated) {
+            const feedUrlEncoded = encodeURIComponent(this.feed.url);
+            const resp = await fetch(`feed?url=${feedUrlEncoded}`);
+            const data = await resp.json();
+
+            if (data?.outdated) {
                 this.reloadingPoll = setTimeout(this.pollFeedStatus.bind(this), 3000);
             } else {
                 this.feed.reloading = false;

@@ -87,7 +87,7 @@ http://beans.com/feed.xml#food d_is_cool #cooking
         $config->addFeed('https://a.com', 'a', ['#a', '#b']);
         $config->addFeed('https://b.com', 'b', ['#a', '#b']);
 
-        $expected = 'ceJzLKCkpKLbS10/US87PVUhUUAaiJK4MqGgSWDQJIgoAKUYM0w==';
+        $expected = 'c' . base64_encode(gzcompress("https://a.com a #a #b\nhttps://b.com b #a #b"));
         $this->assertEquals($expected, $config->encodeForUrl());
     }
 
