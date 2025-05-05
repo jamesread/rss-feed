@@ -280,4 +280,50 @@ END
 
         $this->assertEquals("Example Post A Summary", $posts[0]->description);
     }
+
+    public function test_it_parses_valid_rss1_feeds(): void
+    {
+        $parser = new RssParser();
+
+        // This example, taken from the "Debian Security" feed uses "Dublin Core" spec dates, which were an extension/module
+        // for RSS 1 as there wasn't any requirement for dates in the original RSS1 spec by the looks of things.
+        $posts = $parser->rssDataToPosts(
+            <<<END
+<?xml version="1.0" encoding="UTF-8" ?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://purl.org/rss/1.0/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<channel rdf:about="https://www.example.com/security/dsa.rdf">
+<title>Debian Security</title>
+<link>https://www.example.com/security/dsa.rdf</link>
+<dc:date>2025-05-05T11:32:12Z</dc:date>
+<description>Debian Security Advisories</description>
+<items>
+<rdf:Seq>
+<rdf:li rdf:resource="https://example.com/2025/msg00078.html" />
+<rdf:li rdf:resource="https://example.com/2025/msg00077.html" />
+</rdf:Seq>
+</items>
+</channel>
+<item rdf:about="https://example.com/2025/msg00078.html">
+<title>Post A</title>
+<link>https://example.com/2025/msg00078.html</link>
+<dc:date>2025-05-03</dc:date>
+<description>Post a description</description>
+</item>
+<item rdf:about="https://example.com/2025/msg00077.html">
+<title>Post B</title>
+<link>https://example.com/2025/msg00077.html</link>
+<dc:date>2025-05-01</dc:date>
+<description>Post b description</description>
+</item>
+</rdf:RDF>
+END
+        );
+
+        $this->assertCount(2, $posts);
+        $this->assertEquals('Post A', $posts[0]->title);
+        $this->assertEquals('https://example.com/2025/msg00078.html', $posts[0]->guid);
+        $this->assertEquals('https://example.com/2025/msg00078.html', $posts[0]->url);
+        $this->assertEquals(1746230400, $posts[0]->published_at);
+        $this->assertEquals("Post a description", $posts[0]->description);
+    }
 }

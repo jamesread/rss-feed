@@ -4,6 +4,7 @@ namespace App\Rss;
 
 use App\Models\Post;
 use DateTime;
+use DateTimeZone;
 use Exception;
 use SimpleXMLElement;
 
@@ -30,7 +31,12 @@ class RssParser
         $rssData = trim($rssData);
 
         $rssXml = new SimpleXMLElement($rssData);
-        $items = is_iterable($rssXml->channel->item ?? null) ? iterator_to_array($rssXml->channel->item, false) : [];
+        $items = [];
+        if (is_iterable($rssXml->channel->item ?? null)) {
+            $items = iterator_to_array($rssXml->channel->item, false);
+        } else if  (is_iterable($rssXml->item ?? null)) {
+            $items = iterator_to_array($rssXml->item, false);
+        }
 
         $isAtom = false;
         if (empty($items)) {
@@ -56,6 +62,16 @@ class RssParser
     protected function getPostDataForRssItem(SimpleXMLElement $item): array
     {
         $date = DateTime::createFromFormat(DateTime::RSS, $item->pubDate ?? '');
+        if ($date === false) {
+            $dcDate = strval($item->children('dc', true)->date ?? '');
+            if ($dcDate) {
+                if (!str_contains($dcDate, 'T')) {
+                    $dcDate .= 'T00:00:00Z';
+                }
+                $date = DateTime::createFromFormat(DateTime::ATOM, $dcDate);
+            }
+        }
+
         $item = [
             'title' => mb_substr(strval($item->title ?? ''), 0, 250),
             'description' => $this->formatDescription(strval($item->description) ?: ''),
