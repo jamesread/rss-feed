@@ -1,6 +1,6 @@
-# RSS
+# DanB/RSS
 
-A simple, opinionated, RSS feed aggregator.
+A simple, opinionated, web application which aggregates and displays RSS feeds in a clean social-feed-like UI.
 
 ## Features
 
