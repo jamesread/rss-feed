@@ -19,11 +19,6 @@ class RefreshFeedJob implements ShouldQueue, ShouldBeUnique
     use SerializesModels;
 
     /**
-     * How long this unique lock exists for this kind of job.
-     */
-    public int $uniqueFor = 7200;
-
-    /**
      * Create a new job instance.
      *
      * @return void
