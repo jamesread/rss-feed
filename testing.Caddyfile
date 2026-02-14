@@ -1,0 +1,20 @@
+# This is a simple caddyfile just to proxy connections back to
+# the local PHP server to make it easier to test sub-path hosting.
+# Runs via:
+# caddy run --config testing.Caddyfile
+
+{
+    auto_https off
+}
+
+http://localhost:9001 {
+
+    # Proxy /rss/ to localhost:8000
+    handle_path /rss/* {
+        reverse_proxy http://localhost:8000 {
+            header_up X-Forwarded-Prefix /rss/
+        }
+    }
+
+    respond "Go to /rss/" 404
+}
