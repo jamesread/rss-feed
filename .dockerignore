@@ -8,6 +8,8 @@
 /storage/framework/*
 /storage/logs/*
 /.github
+/.forgejo
+/.git
 /.idea
 /.*.cache
 /test-files
