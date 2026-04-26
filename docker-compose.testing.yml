@@ -5,7 +5,6 @@
 # Refer to the readme for an example that you might want to use
 # for running the application in actual usage.
 
-version: "2"
 services:
   rss:
     container_name: rss_dev

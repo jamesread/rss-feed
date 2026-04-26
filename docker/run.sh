@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Move to app directory
 cd /app || exit
@@ -12,13 +12,13 @@ mkdir -p /app/storage/framework/sessions
 mkdir -p /app/storage/framework/testing
 mkdir -p /app/storage/framework/views
 
-php artisan storage:link
-php artisan migrate --force
-php artisan config:cache
-php artisan view:cache
+php85 artisan storage:link
+php85 artisan migrate --force
+php85 artisan config:cache
+php85 artisan view:cache
 
 # Set runtime permissions
-chown -R www-data:www-data /app
+chown -R www /app
 
 # Run supervisord
 supervisord -c /app/docker/services.conf
