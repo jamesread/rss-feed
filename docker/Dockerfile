@@ -1,12 +1,12 @@
 # NPM asset build
-FROM --platform=$BUILDPLATFORM node:22
-COPY . /app
+FROM --platform=$BUILDPLATFORM node:24
+COPY --exclude=docker/ . /app
 WORKDIR /app
 RUN npm ci && npm run build
 
 # Composer dependancies build
 FROM --platform=$BUILDPLATFORM composer:2
-COPY . /app
+COPY --exclude=docker/ . /app
 WORKDIR /app
 RUN composer install --no-dev
 
@@ -14,11 +14,22 @@ RUN composer install --no-dev
 # Main app container #
 ######################
 
-FROM ubuntu:24.04
-ARG DEBIAN_FRONTEND=noninteractive
+FROM alpine:3.23
 
 # Copy our app files
-COPY . /app
+# Targeted to ensure we're only copying over what's needed
+COPY app /app/app
+COPY bootstrap /app/bootstrap
+COPY config /app/config
+COPY database/migrations /app/database/migrations
+COPY public /app/public
+COPY resources /app/resources
+COPY routes /app/routes
+COPY storage /app/storage
+COPY artisan /app/artisan
+COPY docker /app/docker
+COPY composer.json /app/composer.json
+COPY composer.lock /app/composer.lock
 WORKDIR /app
 
 # Copy requirements from other containers
@@ -26,25 +37,22 @@ COPY --from=0 /app/public/build /app/public/build
 COPY --from=1 /app/vendor /app/vendor
 
 # Install dependencies
-# Then cleanup apt package files
 # Then make required files changes using passed-though files
-# Then create directory for PHP-FPM socket
+# Then create a user to run things as
 # Then setup crontab
 # Then run any app-side commands
 RUN set -xe && \
-        apt-get update -yqq && \
-        apt-get install curl supervisor nginx-light cron -yqq  && \
-        apt-get install php8.3-cli php8.3-fpm php8.3-common php8.3-curl php8.3-mbstring \
-                        php8.3-xml php8.3-zip php8.3-gd php8.3-sqlite3 php8.3-bcmath -yqq && \
-    rm -rf /var/lib/apt/lists/* && \
+        apk add --no-cache supervisor caddy \
+                php85 php85-common php85-curl php85-dom php85-fileinfo php85-fpm \
+                php85-mbstring php85-openssl php85-pdo php85-pdo_sqlite  \
+                php85-session  php85-simplexml  php85-sqlite3 php85-tokenizer php85-xml && \
     cp docker/.env.container /app/.env && \
-    cp docker/nginx.conf /etc/nginx/sites-enabled/rss.conf && \
-    rm /etc/nginx/sites-enabled/default && \
-    mkdir -p /run/php && \
     chmod +x /app/docker/run.sh && \
-    crontab -u www-data /app/docker/cron && \
-    php artisan key:generate && \
-    php artisan route:cache
+    adduser -S www -h /var/lib/www && \
+    crontab -u www /app/docker/cron && \
+    chown -R www /var/log/php85 && \
+    php85 artisan key:generate && \
+    php85 artisan route:cache
 
 # Run our process wrapper script
 EXPOSE 80/tcp

@@ -1,0 +1,33 @@
+:80 {
+    root * /app/public
+    encode gzip
+
+    # PHP-FPM via FastCGI
+    php_fastcgi localhost:9000
+
+    # Suppress logs for favicon and robots.txt
+    @favicon_robots {
+        path /favicon.ico /robots.txt
+    }
+    log_skip @favicon_robots
+
+    # Cache static assets for 1 week
+    @static {
+        path *.css *.gif *.jpg *.js *.png *.avif *.ico *.webp *.jpeg
+    }
+    header @static Cache-Control "public, max-age=604800"
+    @static_files file @static
+    handle @static_files {
+        file_server
+    }
+
+    # Block hidden files (except .well-known)
+    @hidden {
+		not path /.well-known/*
+		path /.*
+    }
+    respond @hidden 403
+
+    # Try files, fall back to index.php (handled by php_fastcgi)
+    file_server
+}
