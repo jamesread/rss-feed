@@ -58,7 +58,7 @@ export default {
             return timestampToRelativeTime(this.post.published_at);
         },
         formatCard() {
-            return this.format === 'card';
+            return this.format === 'card' || this.format === 'grid';
         },
         formatList() {
             return this.format === 'list';

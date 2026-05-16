@@ -46,7 +46,7 @@
             </div>
         </div>
         <div class="md:w-2/3 xl:w-3/4 px-6 md:px-12 md:overflow-auto md:h-full py-2">
-            <div :class="{'max-w-lg': postFormat === 'card', 'max-w-2xl': postFormat === 'list', 'w-full': postFormat === 'compact'}">
+            <div :class="{'max-w-lg': postFormat === 'card', 'max-w-2xl': postFormat === 'list', 'w-full': postFormat === 'compact' || postFormat === 'grid'}">
 
                 <div class="flex items-center justify-between mb-2">
                     <h2 class="font-bold text-black dark:text-gray-400">
@@ -61,10 +61,10 @@
                     </div>
                 </div>
 
-                <div class="-mx-4">
+                <div class="-mx-4" :class="{ 'flex flex-wrap': postFormat === 'grid' }">
                     <template v-for="post in posts">
-                        <Post :post="post" :format="postFormat"/>
-                        <div class="px-4">
+                        <Post :post="post" :format="postFormat" :class="{'flex-1 min-w-sm w-md max-w-lg': postFormat === 'grid'}"/>
+                        <div v-if="postFormat !== 'grid'" class="px-4">
                             <hr class="dark:border-gray-700">
                         </div>
                     </template>

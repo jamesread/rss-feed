@@ -42,23 +42,29 @@ Upon the above, it's quite likely you'll come across issues. This project was cr
 <table>
 	<tbody>
 		<tr>
-			<td width="25%">
+			<td width="50%">
 				Card View
 				<img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/card-view.png">
 			</td>
-			<td width="25%">
+			<td width="50%">
 				List View
 				<img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/list-view.png">
 			</td>
-			<td width="25%">
-				Compact View
-				<img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/compact-view.png">
-			</td>
-			<td width="25%">
-				Dark Mode
-				<img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/dark-mode.png">
-			</td>
 		</tr>
+        <tr>
+            <td width="33%">
+                Compact View
+                <img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/compact-view.png">
+            </td>
+            <td width="33%">
+                Grid View
+                <img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/grid-view.png">
+            </td>
+            <td width="33%">
+                Dark Mode
+                <img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/dark-mode.png">
+            </td>
+        </tr>
 	</tbody>
 </table>
 
