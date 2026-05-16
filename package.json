@@ -7,12 +7,12 @@
     "devDependencies": {
         "@tailwindcss/vite": "^4.1.18",
         "@vitejs/plugin-vue": "^6.0.3",
-        "laravel-vite-plugin": "^2.0.1",
+        "laravel-vite-plugin": "^3.0",
         "tailwindcss": "^4.1.18",
-        "vite": "^7.3"
+        "vite": "^8.0.5"
     },
     "dependencies": {
-        "@inertiajs/vue3": "^2.3",
+        "@inertiajs/vue3": "^3.0",
         "vue": "^3.5.26"
     }
 }

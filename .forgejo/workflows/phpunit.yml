@@ -10,11 +10,11 @@ jobs:
   laravel-tests:
     runs-on: docker
     container:
-      image: node:22-bookworm
+      image: node:24-trixie
     steps:
     - uses: https://github.com/shivammathur/setup-php@v2
       with:
-        php-version: '8.3'
+        php-version: '8.5'
     - uses: https://code.forgejo.org/actions/checkout@v4
     - name: Copy .env
       run: php -r "file_exists('.env') || copy('.env.example', '.env');"
