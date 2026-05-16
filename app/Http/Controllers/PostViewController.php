@@ -47,7 +47,7 @@ class PostViewController extends Controller
 
     protected function renderPostsView(Request $request, ConfiguredFeedList $displayFeeds, ConfiguredFeedList $postFeeds, array $additionalData = [])
     {
-        $page = max(intval($request->get('page')), 1);
+        $page = max(intval($request->input('page')), 1);
         $query = $request->get('query', '');
         $subFilter = null;
 
