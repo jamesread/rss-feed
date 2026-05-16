@@ -4,6 +4,8 @@ namespace App\Rss;
 
 use App\Models\Post;
 use DateTime;
+use DateTimeImmutable;
+use DateTimeInterface;
 use DateTimeZone;
 use Exception;
 use SimpleXMLElement;
@@ -61,24 +63,14 @@ class RssParser
 
     protected function getPostDataForRssItem(SimpleXMLElement $item): array
     {
-        $date = DateTime::createFromFormat(DateTime::RSS, $item->pubDate ?? '');
-        $tdate = strtotime($item->pubDate) ?? 0;
-        if ($date === false) {
-            $dcDate = strval($item->children('dc', true)->date ?? '');
-            if ($dcDate) {
-                if (!str_contains($dcDate, 'T')) {
-                    $dcDate .= 'T00:00:00Z';
-                }
-                $date = DateTime::createFromFormat(DateTime::ATOM, $dcDate);
-            }
-        }
+        $publishedDate = $this->getPublishedDateFromItem($item);
 
         $item = [
             'title' => mb_substr(strval($item->title ?? ''), 0, 250),
             'description' => $this->formatDescription(strval($item->description) ?: ''),
             'url' => strval($item->link ?? ''),
             'guid' => strval($item->guid ?? ''),
-            'published_at' => $date ? $date->getTimestamp() : $tdate,
+            'published_at' =>  $publishedDate ? $publishedDate->getTimestamp() : 0,
         ];
 
         if (empty($item['guid'])) {
@@ -86,6 +78,35 @@ class RssParser
         }
 
         return $item;
+    }
+
+    protected function getPublishedDateFromItem(SimpleXMLElement $item): ?DateTimeImmutable
+    {
+        // Try to parse from standard RSS format
+        $date = DateTimeImmutable::createFromFormat(DateTimeInterface::RSS, $item->pubDate ?? '');
+        if ($date) {
+            return $date;
+        }
+
+        // Try to parse via the old RSS 1.0 Dublin Core format
+        $dcDate = strval($item->children('dc', true)->date ?? '');
+        if ($dcDate) {
+            if (!str_contains($dcDate, 'T')) {
+                $dcDate .= 'T00:00:00Z';
+            }
+            return DateTimeImmutable::createFromFormat(DateTime::ATOM, $dcDate);
+        }
+
+        // Otherwise, if it looks like some kind of date, try to parse whatever we have
+        $pubDate = strval($item->pubDate ?? '');
+        if (preg_match('/^\d{4}-\d{2}-\d{2}/', $pubDate)) {
+            try {
+                return new DateTimeImmutable($item->pubDate ?? '', new DateTimeZone('UTC'));
+            } catch (Exception $exception) {
+            }
+        }
+
+        return null;
     }
 
     protected function formatDescription(string $description): string

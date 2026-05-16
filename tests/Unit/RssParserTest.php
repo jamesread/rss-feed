@@ -326,4 +326,32 @@ END
         $this->assertEquals(1746230400, $posts[0]->published_at);
         $this->assertEquals("Post a description", $posts[0]->description);
     }
+
+    public function test_it_attempts_to_parse_invalid_date_formats_as_backup()
+    {
+        $parser = new RssParser();
+
+        // Example coming from a CISCO RSS feed
+        $posts = $parser->rssDataToPosts(
+            <<<END
+<?xml version="1.0" encoding="utf-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>RSS Feed with bad dates</title>
+    <ttl>15</ttl>
+	  <item>
+          <title>Some Vulnerability</title>
+          <link>https://example.com/link</link>
+          <description>Testing</description>
+		  <pubDate>2026-05-14 16:00:00.0</pubDate>                   
+          <guid>https://example.com/link</guid>
+      </item>
+  </channel>
+</rss> 
+END
+        );
+
+        $this->assertCount(1, $posts);
+        $this->assertEquals(1778774400, $posts[0]->published_at);
+    }
 }
