@@ -64,22 +64,26 @@ class ConfiguredFeedProvider
         return $configuredFeeds;
     }
 
-    protected function updateLastAccessedForFeeds(array $feeds)
+    protected function updateLastAccessedForFeeds(array $feeds): void
     {
         $ids = array_map(fn (ConfiguredFeed $feed) => $feed->feed->id, $feeds);
+
+        if (empty($ids)) {
+            return;
+        }
 
         Feed::query()->whereIn('id', $ids)->update([
             'last_accessed_at' => now()
         ]);
     }
 
-    public function getAll()
+    public function getAll(): ConfiguredFeedList
     {
         $this->updateLastAccessedForFeeds($this->feeds);
         return new ConfiguredFeedList($this->feeds);
     }
 
-    public function getVisible()
+    public function getVisible(): ConfiguredFeedList
     {
         $feeds = array_filter($this->feeds, function (ConfiguredFeed $feed) {
             return !$feed->hidden;
@@ -108,7 +112,7 @@ class ConfiguredFeedProvider
         return new ConfiguredFeedList($feeds);
     }
 
-    public function getForTag(string $tag)
+    public function getForTag(string $tag): ConfiguredFeedList
     {
         $feeds = array_filter($this->feeds, function (ConfiguredFeed $feed) use ($tag) {
             return in_array($tag, $feed->tags);

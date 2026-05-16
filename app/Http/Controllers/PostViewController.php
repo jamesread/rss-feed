@@ -52,9 +52,10 @@ class PostViewController extends Controller
         $subFilter = null;
 
         if ($query) {
-            $subFilter = function (Builder $where) use ($query) {
-                $where->where('title', 'like', '%' . $query . '%')
-                    ->orWhere('description', 'like', '%' . $query . '%');
+            $escapedQuery = str_replace(['%', '_', '\\'], ['\\%', '\\_', '\\\\'], $query);
+            $subFilter = function (Builder $where) use ($escapedQuery) {
+                $where->where('title', 'like', '%' . $escapedQuery . '%')
+                    ->orWhere('description', 'like', '%' . $escapedQuery . '%');
             };
         }
 

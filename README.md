@@ -12,7 +12,7 @@ The following features are built into the application:
 - Custom feed names and colors.
 - Feed-based tags for categorization.
 - Ability to hide feed posts by default.
-- 3 different post layout modes (card, list, compact).
+- 4 different post layout modes (card, grid, list, compact).
 - Fetching of page open-graph images.
 - Feeds managed via a single plaintext file.
 - System-based dark/light theme.
@@ -43,29 +43,34 @@ Upon the above, it's quite likely you'll come across issues. This project was cr
 	<tbody>
 		<tr>
 			<td width="50%">
-				Card View
+				<strong>Card View</strong>
 				<img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/card-view.png">
 			</td>
 			<td width="50%">
-				List View
+				<strong>List View</strong>
 				<img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/list-view.png">
 			</td>
 		</tr>
+	</tbody>
+</table>
+
+<table>
+    <tbody>
         <tr>
             <td width="33%">
-                Compact View
+                <strong>Compact View</strong>
                 <img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/compact-view.png">
             </td>
             <td width="33%">
-                Grid View
+                <strong>Grid View</strong>
                 <img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/grid-view.png">
             </td>
             <td width="33%">
-                Dark Mode
+                <strong>Dark Mode</strong>
                 <img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/dark-mode.png">
             </td>
         </tr>
-	</tbody>
+    </tbody>
 </table>
 
 
@@ -260,6 +265,12 @@ This project uses [PHPUnit](https://phpunit.de/) for testing. Tests will use the
 
 ```bash
 ./vendor/bin/php-cs-fixer fix
+```
+
+[PHPStan](https://phpstan.org/) (via [Larastan](https://github.com/larastan/larastan)) is used for static analysis. This can be ran like so:
+
+```bash
+./vendor/bin/phpstan analyse
 ```
 
 A command is built-in to test RSS feeds where needed. This will just provide a boolean yes/no fetchable status result, but you can run it with debugging with breakpoints for further diagnosis:

@@ -11,7 +11,7 @@ jobs:
   laravel-tests:
     runs-on: docker
     container:
-      image: node:24-trixie
+      image: docker.io/setupphp/node:trixie
     steps:
     - uses: https://github.com/shivammathur/setup-php@v2
       with:

@@ -15,7 +15,7 @@ class FeedController extends Controller
 
     public function get(Request $request): JsonResponse
     {
-        $url = $request->get('url', '');
+        $url = $request->input('url', '');
         $feed = $this->feedProvider->get($url);
         if (is_null($feed)) {
             return response()->json(null, 404);

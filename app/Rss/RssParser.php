@@ -61,15 +61,15 @@ class RssParser
         return $posts;
     }
 
-    protected function getPostDataForRssItem(SimpleXMLElement $item): array
+    protected function getPostDataForRssItem(SimpleXMLElement $rssItem): array
     {
-        $publishedDate = $this->getPublishedDateFromItem($item);
+        $publishedDate = $this->getPublishedDateFromItem($rssItem);
 
         $item = [
-            'title' => mb_substr(strval($item->title ?? ''), 0, 250),
-            'description' => $this->formatDescription(strval($item->description) ?: ''),
-            'url' => strval($item->link ?? ''),
-            'guid' => strval($item->guid ?? ''),
+            'title' => mb_substr(strval($rssItem->title ?? ''), 0, 250),
+            'description' => $this->formatDescription(strval($rssItem->description) ?: ''),
+            'url' => strval($rssItem->link ?? ''),
+            'guid' => strval($rssItem->guid ?? ''),
             'published_at' =>  $publishedDate ? $publishedDate->getTimestamp() : 0,
         ];
 
@@ -94,10 +94,10 @@ class RssParser
             if (!str_contains($dcDate, 'T')) {
                 $dcDate .= 'T00:00:00Z';
             }
-            return DateTimeImmutable::createFromFormat(DateTime::ATOM, $dcDate);
+            return DateTimeImmutable::createFromFormat(DateTime::ATOM, $dcDate) ?: null;
         }
 
-        // Otherwise, if it looks like some kind of date, try to parse whatever we have
+        // Otherwise, if it still looks like some kind of date, try to parse whatever we have
         $pubDate = strval($item->pubDate ?? '');
         if (preg_match('/^\d{4}-\d{2}-\d{2}/', $pubDate)) {
             try {
@@ -123,7 +123,12 @@ class RssParser
 
     protected function getPostDataForAtomItem(SimpleXMLElement $item): array
     {
-        $date = new DateTime(strval($item->published ?? $item->updated ?? ''));
+        try {
+            $date = new DateTime(strval($item->published ?? $item->updated ?? ''));
+        } catch (Exception) {
+            $date = null;
+        }
+
         return [
             'title' => html_entity_decode(mb_substr(strval($item->title ?? ''), 0, 250)),
             'description' => $this->formatDescription(strval($item->summary) ?: strval($item->content) ?: ''),
