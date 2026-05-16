@@ -38,7 +38,7 @@ class PostPruner
     /**
      * @param Collection<Post> $posts
      */
-    protected function deletePostsThumbnails(Collection $posts)
+    protected function deletePostsThumbnails(Collection $posts): void
     {
         $storage = Storage::disk('public');
 

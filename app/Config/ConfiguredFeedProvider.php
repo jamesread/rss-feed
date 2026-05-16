@@ -42,7 +42,7 @@ class ConfiguredFeedProvider
         foreach ($feedUrls as $feedUrl) {
             $feed = $feeds->get($feedUrl);
             if (!$feed) {
-                $feed = (new Feed())->forceCreate([
+                $feed = new Feed()->newQuery()->forceCreate([
                     'url' => $feedUrl,
                     'last_fetched_at' => 0,
                     'last_accessed_at' => 0,

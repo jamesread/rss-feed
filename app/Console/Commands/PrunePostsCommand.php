@@ -27,7 +27,7 @@ class PrunePostsCommand extends Command
      */
     public function handle(PostPruner $pruner): int
     {
-        $days = $this->option('days', null);
+        $days = $this->hasOption('days') ? $this->option('days') : null;
 
         if (!is_null($days)) {
             $retention = intval($days);

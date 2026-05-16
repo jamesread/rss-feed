@@ -8,7 +8,10 @@ use Illuminate\Support\Collection;
 
 class PostProvider
 {
-    public function getLatest(ConfiguredFeedList $feeds, int $count, int $page, callable $condition = null)
+    /**
+     * @return Collection<Post>
+     */
+    public function getLatest(ConfiguredFeedList $feeds, int $count, int $page, ?callable $condition = null): Collection
     {
         $posts = Post::query()
             ->when($condition, $condition)
