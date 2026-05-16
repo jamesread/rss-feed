@@ -62,6 +62,7 @@ class RssParser
     protected function getPostDataForRssItem(SimpleXMLElement $item): array
     {
         $date = DateTime::createFromFormat(DateTime::RSS, $item->pubDate ?? '');
+        $tdate = strtotime($item->pubDate) ?? 0;
         if ($date === false) {
             $dcDate = strval($item->children('dc', true)->date ?? '');
             if ($dcDate) {
@@ -77,7 +78,7 @@ class RssParser
             'description' => $this->formatDescription(strval($item->description) ?: ''),
             'url' => strval($item->link ?? ''),
             'guid' => strval($item->guid ?? ''),
-            'published_at' => $date ? $date->getTimestamp() : 0,
+            'published_at' => $date ? $date->getTimestamp() : $tdate,
         ];
 
         if (empty($item['guid'])) {
