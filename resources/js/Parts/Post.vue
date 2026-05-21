@@ -24,6 +24,18 @@
                          :alt="post.title">
                 </a>
             </div>
+            <div v-if="formatGrid && !post.thumbnail">
+              <a :href="post.url" target="_blank"
+                 :title="post.title"
+                 class="block overflow-hidden rounded-sm my-2 border dark:border-black">
+                <div :style="{backgroundColor: post.feed.color}"
+                    class="w-full object-cover saturate-80 text-white/50
+                     flex items-center p-5 opacity-60
+                     text-5xl font-bold h-32 md:h-48 lg:h-64">
+                  {{ post.title }}
+                </div>
+              </a>
+            </div>
 
             <div :class="{'whitespace-nowrap text-ellipsis overflow-hidden': formatCompact, 'flex-1': formatList}">
                 <h3 class="font-bold text-black dark:text-gray-300" :class="{'text-lg': formatCard, 'text-md': formatList, 'inline': formatCompact}">
@@ -59,6 +71,9 @@ export default {
         },
         formatCard() {
             return this.format === 'card' || this.format === 'grid';
+        },
+        formatGrid() {
+          return this.format === 'grid';
         },
         formatList() {
             return this.format === 'list';
