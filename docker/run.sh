@@ -1,12 +1,13 @@
 #!/bin/sh
+set -e
 
 # Move to app directory
 cd /app || exit
 
 # Setup
 mkdir -p /app/storage/database
-touch -a /app/storage/database/database.sqlite
-touch -a /app/storage/feeds.txt
+touch /app/storage/database/database.sqlite
+touch /app/storage/feeds.txt
 mkdir -p /app/storage/framework/cache
 mkdir -p /app/storage/framework/sessions
 mkdir -p /app/storage/framework/testing
