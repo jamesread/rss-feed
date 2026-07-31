@@ -181,6 +181,18 @@ APP_FEED_UPDATE_FREQUENCY=60
 APP_PRUNE_POSTS_AFTER_DAYS=30
 ```
 
+The following environment can be used to configure our default docker container image:
+
+
+```bash
+# The port which the server (caddy) will listen on.
+# By default, the server will listen on port 80 but this can cause issues
+# in some rootless environments, like when using podman for example.
+# You can set this to an unprivileged port instead (eg. 8080) and then
+# map using that port instead of 80 in the docker/podman command/compose-file.
+SERVER_PORT=80
+```
+
 ## Usage Behind a Reverse Proxy
 
 When using behind a reverse proxy, ensure common forwarding headers are set so that the application can properly detect the right host and path to use.

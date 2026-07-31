@@ -1,11 +1,11 @@
 # NPM asset build
-FROM --platform=$BUILDPLATFORM node:24
+FROM --platform=$BUILDPLATFORM docker.io/library/node:24
 COPY --exclude=docker/ . /app
 WORKDIR /app
 RUN npm ci && npm run build
 
 # Composer dependancies build
-FROM --platform=$BUILDPLATFORM composer:2
+FROM --platform=$BUILDPLATFORM docker.io/library/composer:2
 COPY --exclude=docker/ . /app
 WORKDIR /app
 RUN composer install --no-dev
@@ -14,7 +14,7 @@ RUN composer install --no-dev
 # Main app container #
 ######################
 
-FROM alpine:3.23
+FROM docker.io/library/alpine:3.24
 
 # Copy our app files
 # Targeted to ensure we're only copying over what's needed
