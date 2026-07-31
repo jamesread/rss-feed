@@ -56,6 +56,7 @@ RUN set -xe && \
 
 # Run our process wrapper script
 EXPOSE 80/tcp
+ENV SERVER_PORT=80
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
   CMD wget -qO- http://localhost:80/ > /dev/null 2>&1 || exit 1
 CMD /app/docker/run.sh
