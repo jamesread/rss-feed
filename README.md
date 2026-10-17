@@ -32,7 +32,7 @@ This is not a list of planned features. Please see the [Low Maintenance Project]
 - No authentication or authorization built-in.
 - No customization, extension or plugin system.
 - No organisation upon simple feed-level tagging.
-- Error handling is limited and will likely not alert clearly upon issue.
+- Error handling is limited and will likely not alert clearly to issues.
 
 Upon the above, it's quite likely you'll come across issues. This project was created to meet a personal need while learning some new technologies. Much of the logic is custom written instead of using battle-tested libraries. 
 
@@ -177,7 +177,7 @@ APP_FEED_UPDATE_FREQUENCY=60
 # Uses the post published_at time to determine lifetime.
 # Setting this to false disables any auto-pruning.
 # If active, pruning will auto-run daily.
-# Defaults to false (No pruning) 
+# Defaults to false (No pruning).
 APP_PRUNE_POSTS_AFTER_DAYS=30
 ```
 
@@ -243,10 +243,10 @@ npm install
 npm run build
 ```
 
-For a production server you'd really want to have a webserver active to server the `public` directory and handle PHP.
-You'd also need a process to run the laravel queue system in addition to a cron job to run the schedule.
+For a production server you'd really want to have a webserver active to serve the `public` directory and handle PHP.
+You'd also need a process to run the Laravel queue system in addition to a cron job to run the schedule.
 
-On a development system, These can be done like so:
+On a development system, these can be done like so:
 
 ```shell
 # Serve the app
@@ -261,25 +261,25 @@ php artisan schedule:work
 
 ## Low Maintenance Project
 
-This is a low maintenance project. The scope of features and support are purposefully kept narrow for my purposes to ensure longer term maintenance is viable. I'm not looking to grow this into a bigger project at all.
+This is a low maintenance project. The scope of features and support are purposefully kept narrow for my purposes to ensure longer-term maintenance is viable. I'm not looking to grow this into a bigger project at all.
 
 Issues and PRs raised for bugs are perfectly fine assuming they don't significantly increase the scope of the project. Please don't open PRs for new features that expand the scope.
 
 ## Development
 
-This project uses [PHPUnit](https://phpunit.de/) for testing. Tests will use their own in-memory SQLite instance. Tests can be ran like so:
+This project uses [PHPUnit](https://phpunit.de/) for testing. Tests will use their own in-memory SQLite instance. Tests can be run like so:
 
 ```shell
 ./vendor/bin/phpunit
 ```
 
-[PHP CS Fixer](https://github.com/FriendsOfPHP/PHP-CS-Fixer) is used for formatting. This can be ran like so:
+[PHP CS Fixer](https://github.com/FriendsOfPHP/PHP-CS-Fixer) is used for formatting. This can be run like so:
 
 ```bash
 ./vendor/bin/php-cs-fixer fix
 ```
 
-[PHPStan](https://phpstan.org/) (via [Larastan](https://github.com/larastan/larastan)) is used for static analysis. This can be ran like so:
+[PHPStan](https://phpstan.org/) (via [Larastan](https://github.com/larastan/larastan)) is used for static analysis. This can be run like so:
 
 ```bash
 ./vendor/bin/phpstan analyse
