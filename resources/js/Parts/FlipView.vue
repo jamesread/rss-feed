@@ -4,7 +4,7 @@
         <div ref="probe" class="absolute inset-0 pointer-events-none invisible" :style="safeAreaPadding"></div>
 
         <div ref="pager"
-             class="flip-pager h-full flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory overscroll-x-contain"
+             class="flip-pager h-full flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory overscroll-contain touch-pan-x touch-pinch-zoom"
              @scroll.passive="onScroll"
              @wheel="onWheel">
             <section v-for="(p, i) in pages" :key="i"
@@ -74,7 +74,7 @@
         <!-- Drawer; the posts page sidebar is teleported into #flip-drawer-body -->
         <div v-show="drawerOpen" class="absolute inset-0 z-40">
             <div class="absolute inset-0 bg-black/40" @click="closeDrawer"></div>
-            <aside class="absolute inset-y-0 left-0 w-[min(22rem,85vw)] overflow-y-auto shadow-xl bg-gray-50 dark:bg-gray-800"
+            <aside class="absolute inset-y-0 left-0 w-[min(22rem,85vw)] overflow-y-auto overscroll-contain shadow-xl bg-gray-50 dark:bg-gray-800"
                    role="dialog" aria-modal="true" aria-label="Filters and options"
                    :style="{paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)', paddingLeft: 'env(safe-area-inset-left)'}">
                 <div class="flex justify-end px-3 pt-3">
@@ -238,6 +238,9 @@ export default {
         },
     },
     mounted() {
+        // Stop the document behind the full-screen view from scrolling or bouncing
+        document.documentElement.classList.add('flip-scroll-lock');
+
         // Measure once up front so the first render already has pages
         const probe = this.$refs.probe;
         const style = getComputedStyle(probe);
@@ -250,6 +253,7 @@ export default {
         window.addEventListener('keydown', this.keydownHandler);
     },
     unmounted() {
+        document.documentElement.classList.remove('flip-scroll-lock');
         this.resizeObserver.disconnect();
         window.removeEventListener('keydown', this.keydownHandler);
         clearTimeout(this.wheelTimer);
@@ -260,6 +264,12 @@ export default {
 }
 </script>
 <style>
+html.flip-scroll-lock,
+html.flip-scroll-lock body {
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
 .flip-pager {
     scrollbar-width: none;
 }
