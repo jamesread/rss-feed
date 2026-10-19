@@ -1,6 +1,6 @@
 # rss-feed
 
-[![Docker publish (quay.io)](https://github.com/smichard/rss-reader/actions/workflows/action.yml/badge.svg?branch=main "Status of the last build")](https://github.com/smichard/rss-reader/actions/workflows/action.yml)
+[![Container Build](https://github.com/smichard/rss-reader/actions/workflows/action.yml/badge.svg?branch=main "Status of the last build")](https://github.com/smichard/rss-reader/actions/workflows/action.yml)
 [![Container Registry on Quay](https://img.shields.io/badge/Quay-Container_Registry-46b9e5 "Container Registry on Quay")](https://quay.io/repository/michard/rss-feed)
 
 A simple, opinionated, web application which aggregates and displays RSS feeds in a clean social-feed-like UI.
