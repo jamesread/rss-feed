@@ -1,6 +1,7 @@
 <template>
     <div class="md:flex h-full min-h-0">
-        <div class="md:w-1/3 xl:w-1/4 md:flex md:justify-end md:border-r dark:border-black px-6 bg-gray-50 dark:bg-gray-800 md:px-12 md:overflow-auto py-3">
+        <FlipView v-if="postFormat === 'flip'" :posts="posts" :page="page" :feeds="feeds" :tag="tag" :feed="feed" :search="search" />
+        <div v-show="postFormat !== 'flip'" class="md:w-1/3 xl:w-1/4 md:flex md:justify-end md:border-r dark:border-black px-6 bg-gray-50 dark:bg-gray-800 md:px-12 md:overflow-auto py-3">
             <div class="md:hidden mb-2">
                 <button @click="mobileShowOptions = !mobileShowOptions"
                         class="border w-full rounded-sm py-1 px-3 hover:bg-gray-100 dark:hover:bg-gray-700 border-2 text-gray-600 dark:text-gray-400 dark:border-gray-600 gap-3 font-bold flex items-center">
@@ -10,7 +11,13 @@
                     Toggle filters & options
                 </button>
             </div>
-            <div class="md:max-w-xs w-full hidden md:block" :class="{'block!': mobileShowOptions}">
+            <!-- In flip view the sidebar moves into the flip drawer. "to" changes with the view so Vue re-resolves the target, which only exists while FlipView is mounted. -->
+            <Teleport defer :to="postFormat === 'flip' ? '#flip-drawer-body' : 'body'" :disabled="postFormat !== 'flip'">
+            <div class="md:max-w-xs w-full hidden md:block" :class="{'block!': mobileShowOptions || postFormat === 'flip'}">
+
+                <div v-if="postFormat === 'flip'" class="mb-8 flex">
+                    <FormatSelector :format="postFormat" @change="updateFormat($event)" />
+                </div>
 
                 <div v-if="search || tag || feed || page !== 1" class="mb-8">
                     <Link href="./" class="font-bold text-black dark:text-gray-400">&laquo; Back to home</Link>
@@ -44,8 +51,9 @@
                 </div>
 
             </div>
+            </Teleport>
         </div>
-        <div class="md:w-2/3 xl:w-3/4 px-6 md:px-12 md:overflow-auto md:h-full py-2">
+        <div v-if="postFormat !== 'flip'" class="md:w-2/3 xl:w-3/4 px-6 md:px-12 md:overflow-auto md:h-full py-2">
             <div class="flex items-center justify-between mb-2">
                 <h2 class="font-bold text-black dark:text-gray-400">
                     <Link href="./">Posts</Link>
@@ -85,9 +93,10 @@
     import Feed from "../Parts/Feed.vue";
     import Tag from "../Parts/Tag.vue";
     import FormatSelector from "../Parts/FormatSelector.vue";
+    import FlipView from "../Parts/FlipView.vue";
 
     export default {
-        components: {FormatSelector, Tag, Feed, Post},
+        components: {FlipView, FormatSelector, Tag, Feed, Post},
         props: {
             page: Number,
             feeds: Array,
