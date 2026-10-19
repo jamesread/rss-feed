@@ -46,20 +46,20 @@
             </div>
         </div>
         <div class="md:w-2/3 xl:w-3/4 px-6 md:px-12 md:overflow-auto md:h-full py-2">
-            <div :class="{'max-w-lg': postFormat === 'card', 'max-w-2xl': postFormat === 'list', 'w-full': postFormat === 'compact' || postFormat === 'grid'}">
+            <div class="flex items-center justify-between mb-2">
+                <h2 class="font-bold text-black dark:text-gray-400">
+                    <Link href="./">Posts</Link>
+                    <span v-if="tag"> / #{{ tag }}</span>
+                    <span v-if="feed && feeds.length === 1"> / <span :style="{ color: feeds[0].color}">{{ feeds[0].name }}</span></span>
+                    <span v-if="search"> ?= {{ search }}</span>
+                </h2>
 
-                <div class="flex items-center justify-between mb-2">
-                    <h2 class="font-bold text-black dark:text-gray-400">
-                        <Link href="./">Posts</Link>
-                        <span v-if="tag"> / #{{ tag }}</span>
-                        <span v-if="feed && feeds.length === 1"> / <span :style="{ color: feeds[0].color}">{{ feeds[0].name }}</span></span>
-                        <span v-if="search"> ?= {{ search }}</span>
-                    </h2>
-
-                    <div>
-                        <FormatSelector :format="postFormat" @change="updateFormat($event)" />
-                    </div>
+                <div>
+                    <FormatSelector :format="postFormat" @change="updateFormat($event)" />
                 </div>
+            </div>
+
+            <div :class="{'max-w-lg': postFormat === 'card', 'max-w-2xl': postFormat === 'list', 'w-full': postFormat === 'compact' || postFormat === 'grid'}">
 
                 <div class="-mx-4" :class="{ 'flex flex-wrap': postFormat === 'grid' }">
                     <template v-for="post in posts">
