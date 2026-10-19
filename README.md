@@ -1,6 +1,17 @@
-# DanB/RSS
+# rss-feed
+
+[![Docker publish (quay.io)](https://github.com/smichard/rss-reader/actions/workflows/action.yml/badge.svg?branch=main "Status of the last build")](https://github.com/smichard/rss-reader/actions/workflows/action.yml)
+[![Container Registry on Quay](https://img.shields.io/badge/Quay-Container_Registry-46b9e5 "Container Registry on Quay")](https://quay.io/repository/michard/rss-feed)
 
 A simple, opinionated, web application which aggregates and displays RSS feeds in a clean social-feed-like UI.
+
+## About this Fork
+
+This project is a fork of [danb/rss](https://codeberg.org/danb/rss). On top of the original, it adds:
+
+- **Menu selector pinned to the top right corner.** The menu stays in place at the top right instead of moving with the page.
+- **Configurable theme.** Set the UI theme with the `APP_THEME` environment variable. It accepts `system`, `dark` or `light` (see [App Configuration](#app-configuration)).
+- **Flip view.** An extra layout in the style of a digital newspaper that you can flip through page by page.
 
 ## Features
 
@@ -24,7 +35,6 @@ The following features are built into the application:
 ## Limitations
 
 The below possibly expected features are missing from this application.
-This is not a list of planned features. Please see the [Low Maintenance Project](#low-maintenance-project) section below for more info.
 
 - No import of full post/article content.
 - No feed management via the UI.
@@ -266,12 +276,6 @@ php artisan queue:listen
 # Work the schedule
 php artisan schedule:work
 ```
-
-## Low Maintenance Project
-
-This is a low maintenance project. The scope of features and support are purposefully kept narrow for my purposes to ensure longer-term maintenance is viable. I'm not looking to grow this into a bigger project at all.
-
-Issues and PRs raised for bugs are perfectly fine assuming they don't significantly increase the scope of the project. Please don't open PRs for new features that expand the scope.
 
 ## Development
 
