@@ -21,3 +21,10 @@ yarn-error.log
 /.vscode
 .php-cs-fixer.cache
 /test-files
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
+.beads/proxieddb/
+*.gate.lock*
