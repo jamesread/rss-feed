@@ -61,6 +61,12 @@ Each checkbox is sized to be one beads issue. `Depends on:` lists task IDs that 
 
 - [x] 8.1 Update the README feature line from "4 different post layout modes (card, grid, list, compact)" to include flip, and add `npm test` to the testing section. Verify: the README renders with both changes and `npm test` runs as documented. Depends on: 7.7
 
+## 9. Review follow-ups (after first device test)
+
+- [x] 9.1 Block vertical page scroll in flip view: `flip-scroll-lock` class on `<html>` while `FlipView` is mounted (`overflow: hidden; overscroll-behavior: none` on html/body), `touch-action: pan-x pinch-zoom` on the pager, `overscroll-behavior: contain` on the drawer (D10). Verify: in flip view `html`/`body` compute `overflow: hidden` and the pager `pan-x pinch-zoom`; after switching to list the class is gone and the page scrolls. The iPad portrait swipe itself is confirmed in 7.4.
+- [x] 9.2 Keep the drawer open after "« Back": `data-flip-keep-drawer` on the sidebar back link, a click handler on `#flip-drawer-body` storing a timestamp in `sessionStorage`, reopened on the next `FlipView` mount if under 10 s old (D10). Verify: from `/t/coding` with the drawer open, "« Back" lands on `/` with the drawer open and the flag cleared; a tag link still closes the drawer.
+- [x] 9.3 Rename the sidebar link "« Back to home" to "« Back" in `Posts.vue` (all views). Verify: the label reads "« Back" in the flip drawer and in list view.
+
 ## Workflow follow-up
 
 - Archive the change after the manual checks in section 7 are signed off.

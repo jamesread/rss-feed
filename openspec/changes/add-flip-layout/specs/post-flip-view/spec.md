@@ -43,6 +43,17 @@ In flip view the post mosaic SHALL fill the whole viewport with no page margins 
 - **WHEN** flip view is shown on an iPhone with a notch in landscape
 - **THEN** no tile content, text or control is hidden under the notch or the home indicator
 
+### Requirement: No vertical page scrolling in flip view
+While the flip view is shown, the page SHALL NOT scroll or bounce vertically. Only the drawer content MAY scroll vertically. Leaving flip view SHALL restore normal page scrolling for the other views.
+
+#### Scenario: Vertical swipe on iPad portrait
+- **WHEN** flip view is shown on an iPad in portrait and the user swipes up or down on the mosaic
+- **THEN** neither the mosaic nor the page moves vertically
+
+#### Scenario: Back to a scrolling view
+- **WHEN** the user switches from flip view to list view
+- **THEN** the list of posts scrolls vertically as before
+
 ### Requirement: Other views respect safe areas
 The card, grid, list and compact views SHALL keep their content inside the device safe areas once the page is allowed to extend under the notch.
 
@@ -170,6 +181,28 @@ In flip view the sidebar content of the posts page SHALL be reachable through a 
 #### Scenario: Leave flip view
 - **WHEN** the user opens the drawer and selects card in the view selector
 - **THEN** the posts page is shown in card view with the normal sidebar layout
+
+### Requirement: Back keeps the drawer open
+Activating the "« Back" link in the drawer SHALL show the home page in flip view with the drawer still open, so the user can pick another filter. Activating a tag or feed in the drawer SHALL show the filtered page with the drawer closed.
+
+#### Scenario: Back from a filter
+- **WHEN** the user is on a tag page in flip view, opens the drawer and activates "« Back"
+- **THEN** the home page is shown in flip view with the drawer open
+
+#### Scenario: Filter closes the drawer
+- **WHEN** the user opens the drawer on the home page and activates a tag
+- **THEN** the tag's page is shown in flip view with the drawer closed
+
+### Requirement: Back link label
+The sidebar link that returns to the home page SHALL be labelled "« Back" in every view.
+
+#### Scenario: Label in list view
+- **WHEN** the user opens a tag page in list view
+- **THEN** the sidebar shows a "« Back" link to the home page
+
+#### Scenario: Label in flip drawer
+- **WHEN** the user opens the drawer on a tag page in flip view
+- **THEN** the drawer shows a "« Back" link to the home page
 
 ### Requirement: Current filter visible
 The flip view SHALL show the current context over the mosaic: the tag, feed name or search term in effect, matching the posts heading of the other views.

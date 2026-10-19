@@ -7,7 +7,7 @@ See proposal.md (Why) and `specs/post-flip-view/spec.md` for the required behavi
 **How views work today**
 - There is a single Inertia page, `resources/js/Pages/Posts.vue`. The selected view is the `postFormat` data field (default `'card'`). It is written to `localStorage['post-format']` in `updateFormat()` and read back in `mounted()`, so every page load first renders card and then switches.
 - `Posts.vue` renders `FormatSelector` (four buttons, emits `change`) and loops over `posts` with `Parts/Post.vue`, passing `format`. `Post.vue` switches its markup with `formatCard/Grid/List/Compact` flags. Width per view is set by the wrapper `max-w-lg` / `max-w-2xl` / `w-full`.
-- The sidebar is the first column of `Posts.vue`: Back to home, search (`submitSearch` → `$inertia.visit(pagePath, {data: {query}})`, fired on `submit` and on input `change`), tags derived from `feeds`, and `Feed.vue` entries. `Feed.vue` polls `feed?url=…` every 3 s while a feed is reloading and then shows "Reloaded, refresh to show changes". Below `md`, the sidebar is collapsed behind a "Toggle filters & options" button (`mobileShowOptions`).
+- The sidebar is the first column of `Posts.vue`: a "« Back" link to home (labelled "Back to home" before this change), search (`submitSearch` → `$inertia.visit(pagePath, {data: {query}})`, fired on `submit` and on input `change`), tags derived from `feeds`, and `Feed.vue` entries. `Feed.vue` polls `feed?url=…` every 3 s while a feed is reloading and then shows "Reloaded, refresh to show changes". Below `md`, the sidebar is collapsed behind a "Toggle filters & options" button (`mobileShowOptions`).
 - Links use the custom `Link` wrapper (`Parts/Link.js`), which resolves relative hrefs against `<base href>`. Feed filter URLs are `f/${encodeURIComponent(encodeURIComponent(feed.url))}`, tag URLs are `t/<tag without #>`.
 
 **Data and pagination**
@@ -191,6 +191,14 @@ All new colours use paired `dark:` classes, which the `data-theme` variant resol
 - **CI:** an optional new workflow file `.forgejo/workflows/vitest.yml` (`npm ci && npm test`). It's a new file, so there's no rebase conflict.
 - **Manual:** device checks per tasks.md section 7.
 
+### D10. Review follow-ups (after first device test)
+
+- **No vertical page scroll:** on iPad portrait, vertical swipes on the mosaic were passed up to the document, which scrolled or bounced. While mounted, `FlipView` adds `flip-scroll-lock` to `<html>` (`overflow: hidden; overscroll-behavior: none` on `html` and `body`) and removes it on unmount. The pager gets `touch-action: pan-x pinch-zoom`, so it only handles horizontal pans and pinch-zoom. The drawer panel stays its own vertical scroller (`overscroll-behavior: contain`).
+- **"Back" keeps the drawer open:** every link in the drawer is an Inertia visit that re-mounts the page, which closes the drawer. That's wanted for filters, but after "Back" the user wants to pick another filter. The sidebar's back link carries `data-flip-keep-drawer`. A click handler on `#flip-drawer-body` stores a timestamp in `sessionStorage`, and the next `FlipView` mount reopens the drawer if the timestamp is under 10 s old, then clears it. The timeout keeps a failed visit from reopening the drawer much later. If storage is unavailable, the drawer simply closes as before.
+- **Label:** the sidebar link reads "« Back" instead of "« Back to home" in every view (it's shared markup in `Posts.vue`).
+
+*Alternative considered:* an Inertia `preserve-state` visit for "Back" would keep `FlipView` and the drawer mounted. But it would also keep the stale search input value, the current screen page and the other views' mobile toggle state, all of which would need resetting by hand.
+
 ### Existing mechanics not in the requested parity list
 
 | Mechanic in current code | Flip view handling |
@@ -198,7 +206,7 @@ All new colours use paired `dark:` classes, which the `data-theme` variant resol
 | Format read from `localStorage` in `mounted()` (card flash on load) | Inherited unchanged: flip appears after the first render, like the other views. |
 | Feed reload polling + "Reloaded, refresh to show changes" (`Feed.vue`) | Sidebar is teleported, not re-created, so polling continues and the link appears in the drawer. |
 | Mobile "Toggle filters & options" button | Hidden in flip view (the drawer replaces it); restored when leaving flip. |
-| "« Back to home" link (when filtered or page ≠ 1) | Part of the sidebar block, shown in the drawer. |
+| "« Back" link (when filtered or page ≠ 1; was "« Back to home") | Part of the sidebar block, shown in the drawer. Keeps the drawer open across its visit (D10). |
 | Posts heading/breadcrumb (Posts / #tag / feed in colour / ?= search) | Context label in the flip chrome (D7). |
 | Tag chips on each post | Not shown on tiles; tags are in the drawer. |
 | Relative published time with ISO tooltip | Shown on `l`/`xl` tiles. |
