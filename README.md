@@ -12,7 +12,7 @@ The following features are built into the application:
 - Custom feed names and colors.
 - Feed-based tags for categorization.
 - Ability to hide feed posts by default.
-- 4 different post layout modes (card, grid, list, compact).
+- 5 different post layout modes (card, grid, list, compact, flip).
 - Fetching of page open-graph images.
 - Feeds managed via a single plaintext file.
 - System-based dark/light theme.
@@ -279,6 +279,12 @@ This project uses [PHPUnit](https://phpunit.de/) for testing. Tests will use the
 
 ```shell
 ./vendor/bin/phpunit
+```
+
+The frontend layout logic is tested with [Vitest](https://vitest.dev/). These tests can be run like so:
+
+```shell
+npm test
 ```
 
 [PHP CS Fixer](https://github.com/FriendsOfPHP/PHP-CS-Fixer) is used for formatting. This can be run like so:
