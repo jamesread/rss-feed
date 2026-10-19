@@ -28,3 +28,5 @@ yarn-error.log
 .beads-credential-key
 .beads/proxieddb/
 *.gate.lock*
+/rss-test
+/container_debug.md
