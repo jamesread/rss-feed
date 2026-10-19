@@ -1,5 +1,11 @@
+@php
+    $theme = strtolower(trim((string) config('app.theme')));
+    if (!in_array($theme, ['system', 'dark', 'light'], true)) {
+        $theme = 'system';
+    }
+@endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full dark:bg-gray-900">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ $theme }}" class="h-full dark:bg-gray-900">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

@@ -179,6 +179,14 @@ APP_FEED_UPDATE_FREQUENCY=60
 # If active, pruning will auto-run daily.
 # Defaults to false (No pruning).
 APP_PRUNE_POSTS_AFTER_DAYS=30
+
+# The colour theme of the UI.
+# Options: system, dark, light.
+# "system" follows the browser/OS preference, while "dark" and "light"
+# force that theme. Any other value is treated as "system".
+# When using docker, restart the container after changing this.
+# Defaults to system.
+APP_THEME=system
 ```
 
 The following environment can be used to configure our default docker container image:

@@ -71,6 +71,19 @@ return [
 
     'prune_posts_after_days' => env('APP_PRUNE_POSTS_AFTER_DAYS', false),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Application Theme
+    |--------------------------------------------------------------------------
+    |
+    | The colour theme used by the UI. Can be "system" to follow the
+    | browser/OS preference, or "dark" or "light" to force a theme.
+    | Any other value will be treated as "system".
+    |
+    */
+
+    'theme' => env('APP_THEME', 'system'),
+
 
     /*
     |--------------------------------------------------------------------------
