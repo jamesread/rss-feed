@@ -5,7 +5,7 @@ Each checkbox is sized to be one beads issue. `Depends on:` lists task IDs that 
 ## 1. Test tooling
 
 - [x] 1.1 Add Vitest as a dev dependency: `npm install -D vitest`, add `"test": "vitest run"` to `package.json`, create `vitest.config.mjs` (`environment: 'node'`, `include: ['tests/js/**/*.test.js']`, no Laravel plugin) and a trivial `tests/js/smoke.test.js`. Verify: `npm test` passes and `npm run build` still succeeds (D9).
-- [ ] 1.2 Add a Forgejo workflow `.forgejo/workflows/vitest.yml` that runs `npm ci && npm test` on push/PR, using the same runner image as `phpunit.yml`. Verify: the YAML parses and the job definition mirrors the PHPUnit workflow's trigger block. Optional; skip if the fork does not run CI. Depends on: 1.1
+- [x] 1.2 Add a GitHub Actions workflow `.github/workflows/tests.yml` (the fork's CI runs on GitHub, so Forgejo workflows never run) with jobs for `npm test` + `npm run build`, PHPUnit and PHPStan on pull requests and branch pushes, and call it from the quay.io publish workflow so images are only pushed after the tests pass. Leave `.forgejo/` untouched for upstream rebases. Verify: actionlint reports no errors, and PHPUnit/PHPStan pass locally. Depends on: 1.1
 
 ## 2. Layout module (`resources/js/flip/layout.js`, pure functions)
 

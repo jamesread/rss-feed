@@ -1,0 +1,57 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    # main is tested by the publish workflow, which calls this one before building
+    branches-ignore:
+      - main
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  vitest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Run Vitest
+        run: npm test
+      - name: Build assets
+        run: npm run build
+
+  php:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        check: [phpunit, phpstan]
+    name: ${{ matrix.check }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: mbstring, sqlite3, pdo_sqlite, zlib, simplexml, fileinfo
+      - name: Copy .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+      - name: Install dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      - name: Generate key
+        run: php artisan key:generate
+      - name: Directory permissions
+        run: chmod -R 777 storage bootstrap/cache
+      - name: Run PHPUnit
+        if: matrix.check == 'phpunit'
+        run: vendor/bin/phpunit
+      - name: Run PHPStan
+        if: matrix.check == 'phpstan'
+        run: vendor/bin/phpstan analyse
