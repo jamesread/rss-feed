@@ -84,7 +84,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
                     </button>
                 </div>
-                <div id="flip-drawer-body" class="px-6 pb-6"></div>
+                <div id="flip-drawer-body" class="px-6 pb-6" @click="onDrawerClick"></div>
             </aside>
         </div>
     </div>
@@ -95,6 +95,10 @@ import {buildPages, findPageForPost, firstPostOnPage} from "../flip/layout";
 
 const WHEEL_THRESHOLD = 50;
 const WHEEL_IDLE_MS = 200;
+
+// Links marked with data-flip-keep-drawer reopen the drawer after the page visit
+const KEEP_DRAWER_KEY = 'flip-keep-drawer-open';
+const KEEP_DRAWER_MAX_AGE_MS = 10000;
 
 export default {
     components: {FlipTile},
@@ -236,10 +240,31 @@ export default {
         closeDrawer() {
             this.drawerOpen = false;
         },
+        onDrawerClick(event) {
+            if (event.target.closest('[data-flip-keep-drawer]')) {
+                try {
+                    window.sessionStorage.setItem(KEEP_DRAWER_KEY, String(Date.now()));
+                } catch (e) {
+                    // Storage unavailable: the drawer just closes after the visit
+                }
+            }
+        },
+        restoreDrawer() {
+            try {
+                const since = Number(window.sessionStorage.getItem(KEEP_DRAWER_KEY));
+                window.sessionStorage.removeItem(KEEP_DRAWER_KEY);
+                if (since && Date.now() - since < KEEP_DRAWER_MAX_AGE_MS) {
+                    this.openDrawer();
+                }
+            } catch (e) {
+                // Storage unavailable: start with the drawer closed
+            }
+        },
     },
     mounted() {
         // Stop the document behind the full-screen view from scrolling or bouncing
         document.documentElement.classList.add('flip-scroll-lock');
+        this.restoreDrawer();
 
         // Measure once up front so the first render already has pages
         const probe = this.$refs.probe;

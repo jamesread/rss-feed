@@ -20,7 +20,7 @@
                 </div>
 
                 <div v-if="search || tag || feed || page !== 1" class="mb-8">
-                    <Link href="./" class="font-bold text-black dark:text-gray-400">&laquo; Back</Link>
+                    <Link href="./" data-flip-keep-drawer class="font-bold text-black dark:text-gray-400">&laquo; Back</Link>
                 </div>
 
                 <div class="mb-8">
