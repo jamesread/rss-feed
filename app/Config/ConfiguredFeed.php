@@ -29,7 +29,8 @@ class ConfiguredFeed implements JsonSerializable
             'url' => $this->url,
             'tags' => $this->tags,
             'hidden' => $this->hidden,
-            'favicon' => $this->feed->favicon ?? '',
+            // Versioned so browsers drop a cached icon when a new one is stored under the same path
+            'favicon' => $this->feed->favicon ? "{$this->feed->favicon}?v={$this->feed->favicon_checked_at}" : '',
             'reloading' => $this->reloading,
             'outdated' => $this->isOutdated(),
         ];

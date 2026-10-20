@@ -14,7 +14,8 @@
 
 ## 3. Larger favicons
 
-- [x] 3.1 `FlipTile.vue` `faviconSize`: `xl/l: max-h-30`, `m: max-h-20`, `s: max-h-15`. `Post.vue` grid: `size-24` → `size-30`, keep `max-h-[75%]`. Verify: `npm run build` succeeds, and in the browser an xl flip tile icon measures 120 px, a small one 60 px, and the grid icon 120 px on desktop without overlapping the title.
+- [x] 3.1 `FlipTile.vue` `faviconSize`: `xl/l: max-h-27`, `m: max-h-18`, `s: max-h-13.5`. `Post.vue` grid: `size-24` → `size-27`, keep `max-h-[75%]`. Verify: `npm run build` succeeds, and in the browser an xl flip tile icon measures 108 px, a small one 54 px, and the grid icon 108 px on desktop without overlapping the title.
+- [x] 3.2 Page data sends the favicon as `<path>?v=<favicon_checked_at>`. Verify: `PostViewControllerTest::test_feed_favicon_is_included` asserts the versioned URL.
 
 ## 4. Verification
 

@@ -34,7 +34,10 @@
 
 5. **Configured site → origin only.** The `site=` value is reduced to `scheme://host[:port]`, the same way post URLs are. That lets `site=https://www.example.com/insights/` work too. The existing `isSafeUrl` private-network check applies unchanged.
 
-6. **Sizes:** Tailwind v4 accepts any spacing step. FlipTile `faviconSize` becomes `xl/l: max-h-30`, `m: max-h-20`, `s: max-h-15` (120/80/60 px). In grid view, `Post.vue` changes `size-24` to `size-30`. The existing `max-h-[75%]` cap stays, so on the 128 px mobile placeholder the icon still fits (96 px).
+6. **Sizes:** Tailwind v4 accepts any spacing step. FlipTile `faviconSize` becomes `xl/l: max-h-27`, `m: max-h-18`, `s: max-h-13.5` (108/72/54 px; first +25%, then −10% after review). In grid view, `Post.vue` changes `size-24` to `size-27`. The existing `max-h-[75%]` cap stays, so on the 128 px mobile placeholder the icon still fits (96 px).
+
+7. **Versioned favicon URL.** Icons are served with `max-age` of 7 days, and a new icon can land at the same path (`favicons/<id>.ico`). The page data therefore sends `favicons/<id>.<ext>?v=<favicon_checked_at>`. The version changes at each lookup (at most weekly), which costs one extra download per week and needs no new column.
+   *Alternative:* a timestamp in the file name. It needs old-file cleanup on every lookup.
 
 ## Risks / Trade-offs
 

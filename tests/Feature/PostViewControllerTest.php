@@ -84,12 +84,12 @@ final class PostViewControllerTest extends TestCase
 
     public function test_feed_favicon_is_included(): void
     {
-        Feed::query()->where('url', 'http://example.com/b.xml')->update(['favicon' => 'favicons/2.png']);
+        Feed::query()->where('url', 'http://example.com/b.xml')->update(['favicon' => 'favicons/2.png', 'favicon_checked_at' => 1792483618]);
 
         $resp = $this->get('/');
         $resp->assertInertia(function (Assert $page) {
             $page->where('feeds.0.favicon', '');
-            $page->where('feeds.1.favicon', 'favicons/2.png');
+            $page->where('feeds.1.favicon', 'favicons/2.png?v=1792483618');
             $page->where('posts.0.feed.favicon', fn ($favicon) => is_string($favicon));
         });
     }

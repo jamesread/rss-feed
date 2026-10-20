@@ -11,7 +11,8 @@ Google News search feeds (for example `Acme-News`, `Initech-News` and `Globex-Ne
   When set, the favicon is looked up on that site instead of the site the posts link to.
 - Without a `site=` token, feeds whose posts link to `news.google.com` get no favicon. They show the plain colored placeholder, not the misleading Google icon.
 - When a feed's `site=` value changes (or is added or removed), its favicon is looked up again at the next refresh instead of waiting for the 7-day limit.
-- Favicons on placeholder tiles are 25% larger: 60 px on small, 80 px on medium, and 120 px on large and extra-large flip tiles and grid tiles. They still shrink to fit short tiles.
+- Favicons on placeholder tiles are larger: 54 px on small, 72 px on medium, and 108 px on large and extra-large flip tiles and grid tiles (first +25%, then reduced by 10% after review). They still shrink to fit short tiles.
+- The favicon URL in page data carries a version, so a replaced icon is not hidden by the browser cache.
 
 ## Capabilities
 
