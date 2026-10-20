@@ -62,36 +62,36 @@ Upon the above, it's quite likely you'll come across issues. This project was cr
 
 ## Screenshots
 
-
-<table>
-	<tbody>
-		<tr>
-			<td width="50%">
-				<strong>Card View</strong>
-				<img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/card-view.png">
-			</td>
-			<td width="50%">
-				<strong>List View</strong>
-				<img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/list-view.png">
-			</td>
-		</tr>
-	</tbody>
-</table>
-
 <table>
     <tbody>
         <tr>
-            <td width="33%">
+            <td width="50%">
+                <strong>Card View</strong>
+                <img src="screenshots/card-view.png" alt="Card View">
+            </td>
+            <td width="50%">
+                <strong>List View</strong>
+                <img src="screenshots/list-view.png" alt="List View">
+            </td>
+        </tr>
+        <tr>
+            <td width="50%">
                 <strong>Compact View</strong>
-                <img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/compact-view.png">
+                <img src="screenshots/compact-view.png" alt="Compact View">
             </td>
-            <td width="33%">
+            <td width="50%">
                 <strong>Grid View</strong>
-                <img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/grid-view.png">
+                <img src="screenshots/grid-view.png" alt="Grid View">
             </td>
-            <td width="33%">
+        </tr>
+        <tr>
+            <td width="50%">
                 <strong>Dark Mode</strong>
-                <img src="https://codeberg.org/danb/rss/raw/branch/main/.forgejo/screenshots/dark-mode.png">
+                <img src="screenshots/dark-mode.png" alt="Dark Mode">
+            </td>
+            <td width="50%">
+                <strong>Flip View</strong>
+                <img src="screenshots/flip-view.jpg" alt="Flip View">
             </td>
         </tr>
     </tbody>
