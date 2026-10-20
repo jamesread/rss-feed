@@ -105,6 +105,7 @@ export default {
     components: {FlipTile},
     props: {
         posts: Array,
+        hasMore: Boolean,
         page: Number,
         feeds: Array,
         tag: String,
@@ -134,7 +135,7 @@ export default {
             if (!this.width || !this.height) {
                 return [];
             }
-            return buildPages({posts: this.posts, page: this.page, width: this.width, height: this.height}).pages;
+            return buildPages({posts: this.posts, page: this.page, width: this.width, height: this.height, hasMore: this.hasMore}).pages;
         },
         pagePath() {
             return window.location.pathname;

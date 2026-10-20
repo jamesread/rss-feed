@@ -157,4 +157,24 @@ final class PostViewControllerTest extends TestCase
 
         $this->get('/t/Animals?since=7d&query=partnership')->assertInertia(fn (Assert $page) => $page->has('posts', 0));
     }
+
+    public function test_has_more_and_collapsed_feeds_in_page_data(): void
+    {
+        $feedA = Feed::query()->where('url', 'http://example.com/a.xml')->first();
+        $feedB = Feed::query()->where('url', 'http://example.com/b.xml')->first();
+        Post::factory()->create(['feed_id' => $feedA->id, 'title' => 'Shared story in feeds A and B', 'url' => 'https://news.test/shared', 'published_at' => time() + 20]);
+        Post::factory()->create(['feed_id' => $feedB->id, 'title' => 'Shared story in feeds A and B', 'url' => 'https://news.test/shared', 'published_at' => time() + 10]);
+
+        $this->get('/t/News')->assertInertia(function (Assert $page) {
+            $page->where('hasMore', true);
+            // 100 posts loaded, the two copies of the shared story collapse into one
+            $page->has('posts', 99);
+            $page->where('posts.0.title', 'Shared story in feeds A and B');
+            $page->where('posts.0.feeds.0.name', 'Feed A');
+            $page->where('posts.0.feeds.1.name', 'Feed B');
+            $page->where('posts.1.title', fn ($title) => $title !== 'Shared story in feeds A and B');
+        });
+
+        $this->get('/t/News?page=2')->assertInertia(fn (Assert $page) => $page->where('hasMore', false));
+    }
 }

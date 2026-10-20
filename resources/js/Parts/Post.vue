@@ -5,7 +5,7 @@
         dark:hover:border-gray-700 dark:hover:bg-gray-800 rounded hover:relative hover:z-20 -my-px">
 
         <div class="flex text-sm text-gray-600 dark:text-gray-400 items-center flex-wrap">
-            <Link :href="`f/${encodeURIComponent(encodeURIComponent(post.feed.url))}`" :style="{color: post.feed.color}" class="font-bold text-xs block">{{ post.feed.name }}</Link>
+            <FeedNames :post="post" class="font-bold text-xs block min-w-0" />
             <span v-if="post.source" class="ml-1.5 text-xs">via {{ post.source }}</span>
             <div class="px-2">&bull;</div>
             <div class="italic" :title="isoTime">About {{ relatedPublishedTime }} ago</div>
@@ -59,10 +59,11 @@
 </template>
 <script>
 import Tag from "./Tag.vue";
+import FeedNames from "./FeedNames.vue";
 import {timestampToRelativeTime} from "../util";
 
 export default {
-    components: {Tag},
+    components: {FeedNames, Tag},
     props: {
         post: Object,
         format: {

@@ -177,11 +177,11 @@ export function uniformLayout(n, width, height) {
  * Page shape: {type: 'template'|'end'|'empty', cols, rows, tiles}
  * Tile shape: {kind: 'post'|'prev'|'next', postIndex?, col, row, colSpan, rowSpan, size}
  */
-export function buildPages({posts, page, width, height}) {
+export function buildPages({posts, page, width, height, hasMore = posts.length === POSTS_PER_SERVER_PAGE}) {
     const deviceClass = classify(width, height);
     const grid = GRIDS[deviceClass];
     const hasPrev = page > 1;
-    const hasNext = posts.length === POSTS_PER_SERVER_PAGE;
+    const hasNext = hasMore;
     const navTiles = [];
     if (hasPrev) navTiles.push({kind: 'prev'});
     if (hasNext) navTiles.push({kind: 'next'});

@@ -1,6 +1,6 @@
 <template>
     <div class="md:flex h-full min-h-0">
-        <FlipView v-if="postFormat === 'flip'" :posts="posts" :page="page" :feeds="feeds" :tag="tag" :feed="feed" :search="search" :since="since" />
+        <FlipView v-if="postFormat === 'flip'" :posts="posts" :has-more="hasMore" :page="page" :feeds="feeds" :tag="tag" :feed="feed" :search="search" :since="since" />
         <div v-show="postFormat !== 'flip'" class="md:w-1/3 xl:w-1/4 md:flex md:justify-end md:border-r dark:border-black px-6 bg-gray-50 dark:bg-gray-800 md:px-12 md:overflow-auto py-3">
             <div class="md:hidden mb-2">
                 <button @click="mobileShowOptions = !mobileShowOptions"
@@ -89,7 +89,7 @@
 
                 <div class="py-2 flex">
                     <Link v-if="page > 1" :href="pagePath" :data="pageData(page - 1)" class="cursor-pointer text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 font-bold py-2 hover:text-black">&laquo; Previous Page</Link>
-                    <Link v-if="posts.length === 100" :href="pagePath" :data="pageData(page + 1)" class="ml-auto cursor-pointer text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 font-bold py-2 hover:text-black">Next Page &raquo;</Link>
+                    <Link v-if="hasMore" :href="pagePath" :data="pageData(page + 1)" class="ml-auto cursor-pointer text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 font-bold py-2 hover:text-black">Next Page &raquo;</Link>
                 </div>
 
             </div>
@@ -111,6 +111,7 @@
             page: Number,
             feeds: Array,
             posts: Array,
+            hasMore: Boolean,
             tag: {
                 type: String,
                 default: null,

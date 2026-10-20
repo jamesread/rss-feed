@@ -30,11 +30,11 @@
             <div class="flex flex-col gap-1">
                 <p v-if="size === 'xl' && post.description" class="text-sm text-white/80 line-clamp-2">{{ post.description }}</p>
                 <div class="flex items-center gap-2 text-xs min-w-0">
-                    <Link :href="`f/${encodeURIComponent(encodeURIComponent(post.feed.url))}`"
-                          :style="{color: post.feed.color}"
-                          class="relative z-10 shrink-0 max-w-full font-bold bg-black/70 rounded-sm px-1.5 py-0.5 truncate hover:underline">{{ post.feed.name }}</Link>
-                    <span v-if="post.source" class="min-w-0 truncate text-white/80" :title="`via ${post.source}`">via {{ post.source }}</span>
-                    <span v-if="size === 'l' || size === 'xl'" class="italic text-white/80 whitespace-nowrap" :title="isoTime">About {{ relativeTime }} ago</span>
+                    <FeedNames :post="post"
+                               class="relative z-10 shrink min-w-0 max-w-full font-bold text-white/60 bg-black/70 rounded-sm px-1.5 py-0.5"
+                               link-class="hover:underline" />
+                    <span v-if="post.source" class="min-w-0 shrink-[4] truncate text-white/80" :title="`via ${post.source}`">via {{ post.source }}</span>
+                    <span v-if="size === 'l' || size === 'xl'" class="italic text-white/80 whitespace-nowrap shrink-0" :title="isoTime">About {{ relativeTime }} ago</span>
                 </div>
             </div>
         </div>
@@ -42,6 +42,7 @@
 </template>
 <script>
 import {timestampToRelativeTime} from "../util";
+import FeedNames from "./FeedNames.vue";
 
 const thumbnailTitle = {
     xl: 'text-2xl sm:text-3xl line-clamp-4',
@@ -65,6 +66,7 @@ const placeholderTitle = {
 };
 
 export default {
+    components: {FeedNames},
     props: {
         post: Object,
         size: {

@@ -75,7 +75,7 @@ class PostViewController extends Controller
             }
         };
 
-        $posts = $this->postProvider->getLatest(
+        ['posts' => $posts, 'hasMore' => $hasMore] = $this->postProvider->getLatest(
             $postFeeds,
             100,
             $page,
@@ -85,6 +85,7 @@ class PostViewController extends Controller
         $coreData = [
             'feeds' => $displayFeeds,
             'posts' => $posts,
+            'hasMore' => $hasMore,
             'page' => $page,
             'search' => $query,
             'since' => $since,

@@ -231,6 +231,14 @@ describe('buildPages', () => {
         assertExactCover(end.cols, end.rows, end.tiles);
     });
 
+    test('next tile follows hasMore, not the post count', () => {
+        const collapsed = buildPages({posts: makePosts(94), page: 1, width: w, height: h, hasMore: true}).pages;
+        expect(collapsed[collapsed.length - 1].tiles.map(t => t.kind)).toContain('next');
+
+        const last = buildPages({posts: makePosts(100), page: 1, width: w, height: h, hasMore: false}).pages;
+        expect(last.flatMap(p => p.tiles).some(t => t.kind === 'next')).toBe(false);
+    });
+
     test('no end page when nothing is left and there is no nav', () => {
         // tablet-portrait page 1 rotation: 7, 6, 8, 7 -> 28 posts fill four pages exactly
         const {pages} = buildPages({posts: makePosts(28), page: 1, width: w, height: h});

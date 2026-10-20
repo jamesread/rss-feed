@@ -14,7 +14,7 @@ Two posts in the same listing page SHALL be treated as the same story when their
 - **THEN** they are treated as one story
 
 #### Scenario: Same headline, different link
-- **WHEN** two feeds have posts titled `Acme and Globex sign AI partnership` and `Acme & Globex sign AI partnership!` with different URLs
+- **WHEN** two feeds have posts titled `Acme, Globex sign AI partnership` and `Acme & Globex sign AI partnership!` with different URLs
 - **THEN** they are treated as one story
 
 #### Scenario: Short generic title
