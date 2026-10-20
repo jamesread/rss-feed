@@ -354,4 +354,62 @@ END
         $this->assertCount(1, $posts);
         $this->assertEquals(1778774400, $posts[0]->published_at);
     }
+
+    protected function parseItem(string $itemXml): \App\Models\Post
+    {
+        $posts = (new RssParser())->rssDataToPosts(<<<END
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+<item>
+    <link>https://news.google.com/rss/articles/abc</link>
+    <guid isPermaLink="false">abc</guid>
+    <pubDate>Mon, 19 Oct 2026 07:00:00 GMT</pubDate>
+    <description>Desc</description>
+    {$itemXml}
+</item>
+</channel></rss>
+END);
+        $this->assertCount(1, $posts);
+        return $posts[0];
+    }
+
+    public function test_source_suffix_is_removed_from_title(): void
+    {
+        $post = $this->parseItem('<title>ZEK extends partnership with Initech to strengthen cyber resilience - Initech</title><source url="https://www.example.org">Initech</source>');
+
+        $this->assertEquals('ZEK extends partnership with Initech to strengthen cyber resilience', $post->title);
+        $this->assertEquals('Initech', $post->source);
+    }
+
+    public function test_only_final_source_suffix_is_removed(): void
+    {
+        $post = $this->parseItem("<title>PR News | FGS Global Works DC for Initech - Mon., Oct. 19, 2026 - O'Dwyer's PR News</title><source url=\"https://www.odwyerpr.com\">O'Dwyer's PR News</source>");
+
+        $this->assertEquals('PR News | FGS Global Works DC for Initech - Mon., Oct. 19, 2026', $post->title);
+        $this->assertEquals("O'Dwyer's PR News", $post->source);
+    }
+
+    public function test_entity_encoded_source_suffix_is_removed(): void
+    {
+        $post = $this->parseItem('<title>Q3 results beat estimates - Barron&amp;#39;s</title><source url="https://www.barrons.com">Barron&amp;#39;s</source>');
+
+        $this->assertEquals('Q3 results beat estimates', $post->title);
+        $this->assertEquals("Barron's", $post->source);
+    }
+
+    public function test_title_not_ending_with_source_is_unchanged(): void
+    {
+        $post = $this->parseItem('<title>Markets rally - analysis</title><source url="https://www.reuters.com">Reuters</source>');
+
+        $this->assertEquals('Markets rally - analysis', $post->title);
+        $this->assertEquals('Reuters', $post->source);
+    }
+
+    public function test_item_without_source_is_unchanged(): void
+    {
+        $post = $this->parseItem('<title>Plain title - Example</title>');
+
+        $this->assertEquals('Plain title - Example', $post->title);
+        $this->assertEquals('', $post->source);
+    }
 }

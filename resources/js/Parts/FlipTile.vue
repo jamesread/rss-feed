@@ -32,7 +32,8 @@
                 <div class="flex items-center gap-2 text-xs min-w-0">
                     <Link :href="`f/${encodeURIComponent(encodeURIComponent(post.feed.url))}`"
                           :style="{color: post.feed.color}"
-                          class="relative z-10 font-bold bg-black/70 rounded-sm px-1.5 py-0.5 truncate hover:underline">{{ post.feed.name }}</Link>
+                          class="relative z-10 shrink-0 max-w-full font-bold bg-black/70 rounded-sm px-1.5 py-0.5 truncate hover:underline">{{ post.feed.name }}</Link>
+                    <span v-if="post.source" class="min-w-0 truncate text-white/80" :title="`via ${post.source}`">via {{ post.source }}</span>
                     <span v-if="size === 'l' || size === 'xl'" class="italic text-white/80 whitespace-nowrap" :title="isoTime">About {{ relativeTime }} ago</span>
                 </div>
             </div>

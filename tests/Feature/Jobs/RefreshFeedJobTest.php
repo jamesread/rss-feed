@@ -61,6 +61,35 @@ END),
         ]);
     }
 
+    public function test_refresh_cleans_title_of_existing_post(): void
+    {
+        $feed = Feed::factory()->create(['url' => 'https://example.com/feed.xml']);
+        $post = Post::factory()->create([
+            'feed_id' => $feed->id,
+            'guid' => 'initech-1',
+            'title' => 'Initech launches AI lab - Initech',
+        ]);
+        Http::fake([
+            'example.com/*' => Http::response(<<<END
+<rss version="2.0"><channel><item>
+    <title>Initech launches AI lab - Initech</title>
+    <link>https://news.google.com/rss/articles/initech-1</link>
+    <guid isPermaLink="false">initech-1</guid>
+    <pubDate>Thu, 01 Oct 2026 07:00:00 GMT</pubDate>
+    <source url="https://www.example.org">Initech</source>
+</item></channel></rss>
+END),
+            '*' => Http::response('', 404),
+        ]);
+
+        dispatch_sync(new RefreshFeedJob($feed));
+
+        $post->refresh();
+        $this->assertEquals('Initech launches AI lab', $post->title);
+        $this->assertEquals('Initech', $post->source);
+        $this->assertEquals(1, $feed->posts()->count());
+    }
+
     public function test_unreachable_feed_completes_and_updates_last_fetched_at(): void
     {
         $feed = Feed::factory()->create([

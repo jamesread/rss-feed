@@ -6,6 +6,7 @@
 
         <div class="flex text-sm text-gray-600 dark:text-gray-400 items-center flex-wrap">
             <Link :href="`f/${encodeURIComponent(encodeURIComponent(post.feed.url))}`" :style="{color: post.feed.color}" class="font-bold text-xs block">{{ post.feed.name }}</Link>
+            <span v-if="post.source" class="ml-1.5 text-xs">via {{ post.source }}</span>
             <div class="px-2">&bull;</div>
             <div class="italic" :title="isoTime">About {{ relatedPublishedTime }} ago</div>
             <div class="px-2 hidden md:block">&bull;</div>

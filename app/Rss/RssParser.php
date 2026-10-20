@@ -67,9 +67,11 @@ class RssParser
     protected function getPostDataForRssItem(SimpleXMLElement $rssItem): array
     {
         $publishedDate = $this->getPublishedDateFromItem($rssItem);
+        $source = mb_substr(trim(html_entity_decode(strval($rssItem->source ?? ''))), 0, 250);
 
         $item = [
-            'title' => mb_substr(strval($rssItem->title ?? ''), 0, 250),
+            'title' => $this->removeSourceSuffix(mb_substr(strval($rssItem->title ?? ''), 0, 250), $source),
+            'source' => $source,
             'description' => $this->formatDescription(strval($rssItem->description) ?: ''),
             'url' => strval($rssItem->link ?? ''),
             'guid' => strval($rssItem->guid ?? ''),
@@ -81,6 +83,21 @@ class RssParser
         }
 
         return $item;
+    }
+
+    /**
+     * Remove a trailing " - <source>" from the title, as aggregators like Google News add.
+     */
+    protected function removeSourceSuffix(string $title, string $source): string
+    {
+        $suffix = " - {$source}";
+        $decodedTitle = trim(html_entity_decode($title));
+
+        if ($source && str_ends_with($decodedTitle, $suffix) && mb_strlen($decodedTitle) > mb_strlen($suffix)) {
+            return trim(mb_substr($decodedTitle, 0, -mb_strlen($suffix)));
+        }
+
+        return $title;
     }
 
     protected function getPublishedDateFromItem(SimpleXMLElement $item): ?DateTimeImmutable
@@ -134,6 +151,7 @@ class RssParser
 
         return [
             'title' => html_entity_decode(mb_substr(strval($item->title ?? ''), 0, 250)),
+            'source' => '',
             'description' => $this->formatDescription(strval($item->summary) ?: strval($item->content) ?: ''),
             'url' => $item->link ? strval($item->link->attributes()['href']) : '',
             'guid' => strval($item->id ?? ''),
