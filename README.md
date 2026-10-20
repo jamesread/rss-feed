@@ -155,6 +155,12 @@ https://example.com/feed-b.xml News_Site #news
 # The color must be a CSS-compatible color value.
 https://example.com/feed-c.xml Blue_News[#0078b9] #news #blue
 
+# The website used for the feed's favicon can be set with site=<url>.
+# By default the favicon comes from the site the posts link to.
+# Google News feeds only link to news.google.com, so without site=
+# they show no favicon.
+https://news.google.com/rss/search?q=Acme Acme-News site=https://www.example.com #acme
+
 # Feeds starting with a '-' are flagged as hidden.
 # Posts for hidden feeds won't be shown on the homepage
 # but can be seen via any type of active filter.

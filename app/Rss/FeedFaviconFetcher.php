@@ -21,19 +21,35 @@ class FeedFaviconFetcher
         'image/x-icon' => 'ico',
     ];
 
+    /**
+     * Hosts that only link through to other sites, so their icon never belongs to the feed.
+     */
+    protected const array AGGREGATOR_HOSTS = [
+        'news.google.com',
+    ];
+
     public function __construct(
         protected PostThumbnailFetcher $downloader
     ) {
     }
 
     /**
-     * Find, download and store the favicon of the website behind the given feed.
-     * Records the attempt time whether or not an icon was found.
+     * Find, download and store the favicon of the website behind the given feed,
+     * or of the given site if one is configured for the feed.
+     * Records the attempt time and site whether or not an icon was found.
      */
-    public function fetchAndStoreForFeed(Feed $feed): bool
+    public function fetchAndStoreForFeed(Feed $feed, string $site = ''): bool
     {
         $stored = false;
-        $origin = $this->getSiteOrigin($feed);
+        $origin = $site ? $this->getOrigin($site) : $this->getSiteOrigin($feed);
+
+        if (in_array(parse_url($origin, PHP_URL_HOST), self::AGGREGATOR_HOSTS)) {
+            $origin = '';
+            if ($feed->favicon) {
+                Storage::disk('public')->delete($feed->favicon);
+                $feed->favicon = '';
+            }
+        }
 
         if ($origin && $this->downloader->isSafeUrl($origin)) {
             foreach ($this->getIconUrls($origin) as $iconUrl) {
@@ -45,6 +61,7 @@ class FeedFaviconFetcher
         }
 
         $feed->favicon_checked_at = time();
+        $feed->favicon_site = $site;
         $feed->save();
 
         return $stored;
@@ -56,7 +73,15 @@ class FeedFaviconFetcher
     protected function getSiteOrigin(Feed $feed): string
     {
         $newestPostUrl = $feed->posts()->orderBy('published_at', 'desc')->value('url');
-        $parts = parse_url($newestPostUrl ?: $feed->url);
+        return $this->getOrigin($newestPostUrl ?: $feed->url);
+    }
+
+    /**
+     * Get the origin (scheme, host and port) of the given http(s) URL.
+     */
+    protected function getOrigin(string $url): string
+    {
+        $parts = parse_url($url);
         if (empty($parts['host']) || !in_array($parts['scheme'] ?? '', ['http', 'https'])) {
             return '';
         }

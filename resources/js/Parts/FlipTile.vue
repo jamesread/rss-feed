@@ -50,10 +50,10 @@ const thumbnailTitle = {
 };
 
 const faviconSize = {
-    xl: 'max-h-24',
-    l: 'max-h-24',
-    m: 'max-h-16',
-    s: 'max-h-12',
+    xl: 'max-h-30',
+    l: 'max-h-30',
+    m: 'max-h-20',
+    s: 'max-h-15',
 };
 
 const placeholderTitle = {

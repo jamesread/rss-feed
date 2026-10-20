@@ -139,6 +139,36 @@ END),
         Queue::assertNotPushed(FetchFeedFaviconJob::class);
     }
 
+    public function test_favicon_is_looked_up_again_when_site_changes(): void
+    {
+        $feed = Feed::factory()->create([
+            'url' => 'https://example.com/feed.xml',
+            'favicon_checked_at' => time() - 86400,
+        ]);
+        Http::fake(['example.com/*' => Http::response('<rss version="2.0"><channel></channel></rss>')]);
+
+        dispatch_sync(new RefreshFeedJob($feed, 'https://example.com/about'));
+
+        $feed->refresh();
+        $this->assertEquals('https://example.com/about', $feed->favicon_site);
+        $this->assertGreaterThan(time() - 10, $feed->favicon_checked_at);
+    }
+
+    public function test_favicon_job_is_not_dispatched_when_site_unchanged(): void
+    {
+        $feed = Feed::factory()->create([
+            'url' => 'https://example.com/feed.xml',
+            'favicon_checked_at' => time() - (2 * 86400),
+            'favicon_site' => 'https://example.com',
+        ]);
+        Http::fake(['example.com/*' => Http::response('<rss version="2.0"><channel></channel></rss>')]);
+        Queue::fake([FetchFeedFaviconJob::class]);
+
+        dispatch_sync(new RefreshFeedJob($feed, 'https://example.com'));
+
+        Queue::assertNotPushed(FetchFeedFaviconJob::class);
+    }
+
     public function test_favicon_job_is_not_dispatched_when_thumbnails_disabled(): void
     {
         config(['app.load_post_thumbnails' => false]);

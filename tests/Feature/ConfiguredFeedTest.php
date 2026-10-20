@@ -3,13 +3,17 @@
 namespace Tests\Feature;
 
 use App\Config\ConfiguredFeed;
+use App\Config\ConfiguredFeedProvider;
 use App\Jobs\RefreshFeedJob;
 use App\Models\Feed;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 final class ConfiguredFeedTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_is_outdated_can_be_controlled_by_config(): void
     {
         $now = time();
@@ -53,5 +57,16 @@ final class ConfiguredFeedTest extends TestCase
 
         $configuredFeed->startReloading();
         Queue::assertPushed(RefreshFeedJob::class);
+    }
+
+    public function test_site_is_set_from_config(): void
+    {
+        $provider = new ConfiguredFeedProvider();
+        $provider->loadFromString('https://news.google.com/rss/search?q=Initech Initech-News site=https://www.example.org #initech');
+
+        $feeds = iterator_to_array($provider->getAll());
+        $this->assertCount(1, $feeds);
+        $this->assertEquals('https://www.example.org', $feeds[0]->site);
+        $this->assertArrayNotHasKey('site', $feeds[0]->jsonSerialize());
     }
 }

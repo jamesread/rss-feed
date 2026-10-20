@@ -138,6 +138,42 @@ http://beans.com/feed.xml#food d_is_cool #cooking
         $this->assertEquals('b', $config->getName('https://b.com'));
     }
 
+    public function test_site_token_is_parsed(): void
+    {
+        $config = new RssConfig();
+        $config->parseFromString(implode("\n", [
+            'https://news.google.com/rss/search?q=Acme Acme-News site=https://www.example.com #acme',
+            'https://example.com/feed.xml Example #news',
+            'https://example.org/feed.xml Invalid site=example.com #news',
+        ]));
+
+        $acme = 'https://news.google.com/rss/search?q=Acme';
+        $this->assertEquals('Acme-News', $config->getName($acme));
+        $this->assertEquals(['#acme'], $config->getTags($acme));
+        $this->assertEquals('https://www.example.com', $config->getSite($acme));
+
+        $this->assertEquals('', $config->getSite('https://example.com/feed.xml'));
+
+        $this->assertEquals('', $config->getSite('https://example.org/feed.xml'));
+        $this->assertEquals('Invalid', $config->getName('https://example.org/feed.xml'));
+        $this->assertEquals(['#news'], $config->getTags('https://example.org/feed.xml'));
+    }
+
+    public function test_site_token_survives_url_round_trip(): void
+    {
+        $config = new RssConfig();
+        $config->addFeed('https://a.com', 'Initech', ['#a'], '#fff', true, 'https://www.example.org');
+
+        $this->assertEquals('-https://a.com Initech[#fff] site=https://www.example.org #a', $config->toString());
+
+        $decoded = new RssConfig();
+        $decoded->decodeFromUrl($config->encodeForUrl());
+
+        $this->assertEquals('https://www.example.org', $decoded->getSite('https://a.com'));
+        $this->assertEquals(['#a'], $decoded->getTags('https://a.com'));
+        $this->assertTrue($decoded->getHidden('https://a.com'));
+    }
+
     public function test_decode_from_url_with_empty_input(): void
     {
         $config = new RssConfig();

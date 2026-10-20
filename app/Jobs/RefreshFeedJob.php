@@ -24,7 +24,8 @@ class RefreshFeedJob implements ShouldQueue, ShouldBeUnique
      * @return void
      */
     public function __construct(
-        protected Feed $feed
+        protected Feed $feed,
+        protected string $site = '',
     ) {
     }
 
@@ -50,9 +51,10 @@ class RefreshFeedJob implements ShouldQueue, ShouldBeUnique
         $this->feed->last_fetched_at = time();
         $this->feed->save();
 
-        $faviconDue = $this->feed->favicon_checked_at < time() - (7 * 86400);
+        $faviconDue = $this->feed->favicon_checked_at < time() - (7 * 86400)
+            || $this->feed->favicon_site !== $this->site;
         if ($loadThumbs && $faviconDue) {
-            dispatch(new FetchFeedFaviconJob($this->feed));
+            dispatch(new FetchFeedFaviconJob($this->feed, $this->site));
         }
     }
 

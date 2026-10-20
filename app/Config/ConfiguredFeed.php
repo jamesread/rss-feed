@@ -17,6 +17,7 @@ class ConfiguredFeed implements JsonSerializable
         public string $color,
         public array $tags,
         public bool $hidden,
+        public string $site = '',
     ) {
     }
 
@@ -43,7 +44,7 @@ class ConfiguredFeed implements JsonSerializable
 
     public function startReloading(): void
     {
-        $refreshJob = new RefreshFeedJob($this->feed);
+        $refreshJob = new RefreshFeedJob($this->feed, $this->site);
         dispatch($refreshJob);
         $this->reloading = true;
     }

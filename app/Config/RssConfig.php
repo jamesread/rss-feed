@@ -8,7 +8,7 @@ class RssConfig
      * The configured feeds.
      * Array keys are the feed URLs and values are arrays of tags as strings.
      * Tag strings include their '#' prefix.
-     * @var array<string, array{name: string, tags: string[], color: string, hidden: bool}>
+     * @var array<string, array{name: string, tags: string[], color: string, hidden: bool, site: string}>
      */
     protected array $feeds = [];
 
@@ -24,13 +24,14 @@ class RssConfig
     /**
      * Add a new feed to the config.
      */
-    public function addFeed(string $feed, string $name, array $tags = [], string $color = '', bool $hidden = false): void
+    public function addFeed(string $feed, string $name, array $tags = [], string $color = '', bool $hidden = false, string $site = ''): void
     {
         $this->feeds[$feed] = [
             'name' => $name,
             'tags' => $tags,
             'color' => $color,
             'hidden' => $hidden,
+            'site' => $site,
         ];
     }
 
@@ -83,6 +84,14 @@ class RssConfig
     }
 
     /**
+     * Get the website configured for the given feed.
+     */
+    public function getSite(string $feed): string
+    {
+        return $this->feeds[$feed]['site'] ?? '';
+    }
+
+    /**
      * Get the configuration as a string.
      */
     public function toString(): string
@@ -93,6 +102,10 @@ class RssConfig
             $line = "{$feed} {$details['name']}";
             if ($details['color']) {
                 $line .= "[{$details['color']}]";
+            }
+
+            if ($details['site']) {
+                $line .= " site={$details['site']}";
             }
 
             $tags = $details['tags'];
@@ -145,8 +158,16 @@ class RssConfig
             $name = str_replace('_', ' ', $name);
             $tags = array_values(array_filter(array_slice($parts, 2), fn ($str) => str_starts_with($str, '#')));
 
+            $site = '';
+            foreach (array_slice($parts, 2) as $part) {
+                if (preg_match('/^site=(https?:\/\/.+)$/', $part, $matches)) {
+                    $site = $matches[1];
+                    break;
+                }
+            }
+
             if (str_starts_with($url, 'http://') || str_starts_with($url, 'https://')) {
-                $this->addFeed($url, $name, $tags, $color, $hidden);
+                $this->addFeed($url, $name, $tags, $color, $hidden, $site);
             }
         }
     }

@@ -29,7 +29,8 @@ class FetchFeedFaviconJob implements ShouldQueue, ShouldBeUnique
      * @return void
      */
     public function __construct(
-        protected Feed $feed
+        protected Feed $feed,
+        protected string $site = '',
     ) {
     }
 
@@ -38,7 +39,7 @@ class FetchFeedFaviconJob implements ShouldQueue, ShouldBeUnique
      */
     public function handle(FeedFaviconFetcher $faviconFetcher): void
     {
-        $faviconFetcher->fetchAndStoreForFeed($this->feed);
+        $faviconFetcher->fetchAndStoreForFeed($this->feed, $this->site);
     }
 
     /**

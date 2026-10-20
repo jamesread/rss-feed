@@ -26,9 +26,9 @@ final class FeedFaviconFetcherTest extends TestCase
         $this->ico = base64_decode('AAABAAEAAQEAAAEAIABDAAAAFgAAAIlQTkcNChoKAAAADUlIRFIAAAABAAAAAQgGAAAAHxXEiQAAAApJREFUeJxjAAEAAAUAAQ0KLbQAAAAASUVORK5CYII=');
     }
 
-    protected function fetch(Feed $feed): bool
+    protected function fetch(Feed $feed, string $site = ''): bool
     {
-        return app(FeedFaviconFetcher::class)->fetchAndStoreForFeed($feed);
+        return app(FeedFaviconFetcher::class)->fetchAndStoreForFeed($feed, $site);
     }
 
     public function test_largest_declared_icon_is_stored(): void
@@ -159,5 +159,55 @@ END),
 
         Http::assertNothingSent();
         $this->assertGreaterThan(time() - 10, $feed->refresh()->favicon_checked_at);
+    }
+
+    public function test_configured_site_origin_is_used(): void
+    {
+        Http::fake([
+            'https://example.com/' => Http::response(''),
+            'https://example.com/favicon.ico' => Http::response($this->ico),
+            '*' => Http::response('', 404),
+        ]);
+        $feed = Feed::factory()->create(['url' => 'https://news.google.com/rss/search?q=Example']);
+        Post::factory()->create(['feed_id' => $feed->id, 'url' => 'https://news.google.com/rss/articles/abc', 'published_at' => time()]);
+
+        $this->assertTrue($this->fetch($feed, 'https://example.com/insights/'));
+
+        $feed->refresh();
+        $this->assertEquals("favicons/{$feed->id}.ico", $feed->favicon);
+        $this->assertEquals('https://example.com/insights/', $feed->favicon_site);
+        Http::assertSent(fn (Request $request) => $request->url() === 'https://example.com/');
+        Http::assertNotSent(fn (Request $request) => str_contains($request->url(), 'insights'));
+        Http::assertNotSent(fn (Request $request) => str_contains($request->url(), 'google'));
+    }
+
+    public function test_google_news_without_site_is_not_requested(): void
+    {
+        Http::fake();
+        $feed = Feed::factory()->create(['url' => 'https://news.google.com/rss/search?q=Example']);
+        Post::factory()->create(['feed_id' => $feed->id, 'url' => 'https://news.google.com/rss/articles/abc', 'published_at' => time()]);
+
+        $this->assertFalse($this->fetch($feed));
+
+        Http::assertNothingSent();
+        $feed->refresh();
+        $this->assertEquals('', $feed->favicon);
+        $this->assertEquals('', $feed->favicon_site);
+        $this->assertGreaterThan(time() - 10, $feed->favicon_checked_at);
+    }
+
+    public function test_stored_google_favicon_is_removed(): void
+    {
+        Http::fake();
+        $feed = Feed::factory()->create(['url' => 'https://news.google.com/rss/search?q=Example']);
+        Storage::disk('public')->put("favicons/{$feed->id}.ico", $this->ico);
+        $feed->favicon = "favicons/{$feed->id}.ico";
+        $feed->save();
+
+        $this->assertFalse($this->fetch($feed));
+
+        $this->assertEquals('', $feed->refresh()->favicon);
+        Storage::disk('public')->assertMissing("favicons/{$feed->id}.ico");
+        Http::assertNothingSent();
     }
 }

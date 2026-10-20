@@ -56,6 +56,7 @@ class ConfiguredFeedProvider
                 $this->config->getColor($feedUrl),
                 $this->config->getTags($feedUrl),
                 $this->config->getHidden($feedUrl),
+                $this->config->getSite($feedUrl),
             );
 
             $configuredFeeds[] = $configured;

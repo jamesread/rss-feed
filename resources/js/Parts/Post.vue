@@ -38,7 +38,7 @@
                   <img :src="`storage/${post.feed.favicon}`"
                        loading="lazy"
                        alt=""
-                       class="size-24 max-h-[75%] w-auto aspect-square object-contain rounded-xl bg-white/90 p-2 shadow"
+                       class="size-30 max-h-[75%] w-auto aspect-square object-contain rounded-xl bg-white/90 p-2 shadow"
                        @error="faviconFailed = true">
                 </div>
               </a>
