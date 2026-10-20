@@ -12,6 +12,13 @@ This project is a fork of [danb/rss](https://codeberg.org/danb/rss). On top of t
 - **Menu selector pinned to the top right corner.** The menu stays in place at the top right instead of moving with the page.
 - **Configurable theme.** Set the UI theme with the `APP_THEME` environment variable. It accepts `system`, `dark` or `light` (see [App Configuration](#app-configuration)).
 - **Flip view.** An extra layout in the style of a digital newspaper that you can flip through page by page.
+- **Flip view auto-advance.** Flip view can turn its pages on its own, for a wall screen or kiosk PC (see [Kiosk / Information Display](#kiosk--information-display)).
+- **Feed favicons.** Each feed's website icon is shown on posts without a thumbnail in flip and grid view. The site can be set per feed with `site=` (see [Feed Configuration](#feed-configuration)).
+- **Failing feed marker.** Feeds whose last fetch failed get a red dot in the feed list, with the reason on hover.
+- **Cleaner aggregator titles.** For Google News and similar feeds, the publisher is removed from the title and shown as "via …" instead.
+- **Duplicate stories collapsed.** The same story from several feeds is shown once, listing all its feeds.
+- **Starred posts.** Posts can be starred and found again under "Starred".
+- **Time filter.** Listings can be limited to the last 24 hours, 7 days or 30 days.
 
 ## Features
 
@@ -28,6 +35,10 @@ The following features are built into the application:
 - Feeds managed via a single plaintext file.
 - System-based dark/light theme.
 - Post title/description search.
+- Feed website favicons on posts without a thumbnail (flip and grid view).
+- Red dot next to feeds whose last fetch failed, with the reason on hover.
+- Duplicate stories across feeds shown once, with all their feed names.
+- Publisher suffixes removed from Google News titles and shown as "via <publisher>".
 - Time filter (last 24 hours, 7 days or 30 days), combinable with search.
 - Flip view auto-advance for kiosk displays (see [Kiosk / Information Display](#kiosk--information-display)).
 - Starred / read-later posts. Stars are kept in your browser, so they are per device and survive old posts being pruned.
@@ -45,7 +56,7 @@ The below possibly expected features are missing from this application.
 - No authentication or authorization built-in.
 - No customization, extension or plugin system.
 - No organisation upon simple feed-level tagging.
-- Error handling is limited and will likely not alert clearly to issues.
+- Error handling is limited. Failing feeds are marked in the feed list, but other issues may not be reported clearly.
 
 Upon the above, it's quite likely you'll come across issues. This project was created to meet a personal need while learning some new technologies. Much of the logic is custom written instead of using battle-tested libraries. 
 
