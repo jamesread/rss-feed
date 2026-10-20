@@ -93,4 +93,19 @@ final class PostViewControllerTest extends TestCase
             $page->where('posts.0.feed.favicon', fn ($favicon) => is_string($favicon));
         });
     }
+
+    public function test_feed_fetch_status_is_included(): void
+    {
+        Feed::query()->where('url', 'http://example.com/b.xml')->update([
+            'last_fetch_error' => 'HTTP 404',
+            'last_fetch_succeeded_at' => 1792483618,
+        ]);
+
+        $resp = $this->get('/');
+        $resp->assertInertia(function (Assert $page) {
+            $page->where('feeds.0.fetch_error', '');
+            $page->where('feeds.1.fetch_error', 'HTTP 404');
+            $page->where('feeds.1.fetch_succeeded_at', 1792483618);
+        });
+    }
 }

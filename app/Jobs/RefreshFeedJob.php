@@ -34,7 +34,8 @@ class RefreshFeedJob implements ShouldQueue, ShouldBeUnique
      */
     public function handle(FeedPostFetcher $postFetcher): void
     {
-        $freshPosts = $postFetcher->fetchForFeed($this->feed);
+        $result = $postFetcher->fetchForFeed($this->feed);
+        $freshPosts = $result->posts;
         $loadThumbs = config('app.load_post_thumbnails', false);
 
         foreach ($freshPosts as $post) {
@@ -49,6 +50,10 @@ class RefreshFeedJob implements ShouldQueue, ShouldBeUnique
         }
 
         $this->feed->last_fetched_at = time();
+        $this->feed->last_fetch_error = $result->error;
+        if (!$result->failed()) {
+            $this->feed->last_fetch_succeeded_at = time();
+        }
         $this->feed->save();
 
         $faviconDue = $this->feed->favicon_checked_at < time() - (7 * 86400)

@@ -75,6 +75,38 @@ END),
         $this->assertGreaterThan(time() - 10, $feed->refresh()->last_fetched_at);
     }
 
+    public function test_failed_fetch_records_error_and_keeps_last_success(): void
+    {
+        $lastSuccess = time() - 86400;
+        $feed = Feed::factory()->create([
+            'url' => 'https://example.com/feed.xml',
+            'last_fetch_succeeded_at' => $lastSuccess,
+        ]);
+        Http::fake(['example.com/*' => Http::response('', 404)]);
+
+        dispatch_sync(new RefreshFeedJob($feed));
+
+        $feed->refresh();
+        $this->assertEquals('HTTP 404', $feed->last_fetch_error);
+        $this->assertEquals($lastSuccess, $feed->last_fetch_succeeded_at);
+    }
+
+    public function test_successful_fetch_clears_error(): void
+    {
+        $feed = Feed::factory()->create([
+            'url' => 'https://example.com/feed.xml',
+            'last_fetch_error' => 'HTTP 500',
+            'last_fetch_succeeded_at' => 0,
+        ]);
+        Http::fake(['example.com/*' => Http::response('<rss version="2.0"><channel></channel></rss>')]);
+
+        dispatch_sync(new RefreshFeedJob($feed));
+
+        $feed->refresh();
+        $this->assertEquals('', $feed->last_fetch_error);
+        $this->assertGreaterThan(time() - 10, $feed->last_fetch_succeeded_at);
+    }
+
     public function test_non_successful_response_is_logged(): void
     {
         $feed = Feed::factory()->create(['url' => 'https://example.com/feed.xml']);

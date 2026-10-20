@@ -27,3 +27,13 @@ export function timestampToRelativeTime(timestamp) {
 
     return `${int} ${label}${int === 1 ? '' : 's'}`;
 }
+
+/**
+ * Describe a feed's failed fetch for the status marker.
+ * @param {String} error
+ * @param {Number} succeededAt
+ */
+export function feedFetchErrorLabel(error, succeededAt) {
+    const lastSuccess = succeededAt ? `${timestampToRelativeTime(succeededAt)} ago` : 'never';
+    return `Last fetch failed: ${error} · last success ${lastSuccess}`;
+}

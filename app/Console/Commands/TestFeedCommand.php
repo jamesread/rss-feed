@@ -29,7 +29,13 @@ class TestFeedCommand extends Command
     {
         $url = $this->argument('url');
 
-        $posts = $postFetcher->fetchForFeed((new Feed())->forceFill(['url' => $url]));
+        $result = $postFetcher->fetchForFeed((new Feed())->forceFill(['url' => $url]));
+        $posts = $result->posts;
+        if ($result->failed()) {
+            $this->error("Feed could not be fetched: {$result->error}");
+            return Command::FAILURE;
+        }
+
         if (count($posts) === 0) {
             $this->error('No posts fetched. Either data could not be fetched or the feed data was not recognised as valid.');
             return Command::FAILURE;

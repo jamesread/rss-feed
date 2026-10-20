@@ -3,7 +3,7 @@
 namespace App\Rss;
 
 use App\Models\Feed;
-use App\Models\Post;
+use Exception;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -15,29 +15,30 @@ class FeedPostFetcher
     ) {
     }
 
-    /**
-     * @return Post[]
-     */
-    public function fetchForFeed(Feed $feed): array
+    public function fetchForFeed(Feed $feed): FeedFetchResult
     {
         try {
             $feedResponse = Http::timeout(10)->withUserAgent('rss/4.5.6')->get($feed->url);
         } catch (ConnectionException $exception) {
-            $this->logFailure($feed, $exception->getMessage());
-            return [];
+            return $this->failure($feed, $exception->getMessage());
         }
 
         if (!$feedResponse->successful()) {
-            $this->logFailure($feed, "HTTP {$feedResponse->status()}");
-            return [];
+            return $this->failure($feed, "HTTP {$feedResponse->status()}");
         }
 
-        $rssData = trim($feedResponse->body());
-        return $this->rssParser->rssDataToPosts($rssData);
+        try {
+            $posts = $this->rssParser->parseRssDataToPosts(trim($feedResponse->body()));
+        } catch (Exception) {
+            return $this->failure($feed, 'Invalid feed content');
+        }
+
+        return new FeedFetchResult($posts);
     }
 
-    protected function logFailure(Feed $feed, string $reason): void
+    protected function failure(Feed $feed, string $reason): FeedFetchResult
     {
         Log::warning('Feed fetch failed', ['url' => $feed->url, 'reason' => $reason]);
+        return new FeedFetchResult([], mb_substr($reason, 0, 250));
     }
 }

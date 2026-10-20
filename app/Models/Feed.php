@@ -17,6 +17,8 @@ use Illuminate\Support\Carbon;
  * @property string $favicon
  * @property int $favicon_checked_at
  * @property string $favicon_site
+ * @property string $last_fetch_error
+ * @property int $last_fetch_succeeded_at
  */
 class Feed extends Model
 {

@@ -33,6 +33,9 @@ class RssParser
         $rssData = trim($rssData);
 
         $rssXml = new SimpleXMLElement($rssData);
+        if (!in_array(strtolower($rssXml->getName()), ['rss', 'feed', 'rdf'])) {
+            throw new Exception('Document is not an RSS or Atom feed');
+        }
         $items = [];
         if (is_iterable($rssXml->channel->item ?? null)) {
             $items = iterator_to_array($rssXml->channel->item, false);
