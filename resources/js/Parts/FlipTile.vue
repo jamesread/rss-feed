@@ -12,8 +12,11 @@
             <div class="absolute inset-0 bg-black/25"></div>
         </div>
 
+        <StarButton :post="post"
+                    class="absolute z-10 top-2 right-2 size-8 bg-black/40 text-white/90 hover:bg-black/60 backdrop-blur-sm" />
+
         <div class="absolute inset-0 flex flex-col p-3 gap-1 text-white" :class="post.thumbnail ? 'justify-end' : 'justify-between'">
-            <h3 class="font-bold leading-tight" :class="titleClass">
+            <h3 class="font-bold leading-tight pr-8" :class="titleClass">
                 <a :href="post.url" target="_blank" :title="post.title"
                    class="after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-4 focus-visible:after:ring-inset focus-visible:after:ring-white/80">{{ post.title }}</a>
             </h3>
@@ -43,6 +46,7 @@
 <script>
 import {timestampToRelativeTime} from "../util";
 import FeedNames from "./FeedNames.vue";
+import StarButton from "./StarButton.vue";
 
 const thumbnailTitle = {
     xl: 'text-2xl sm:text-3xl line-clamp-4',
@@ -66,7 +70,7 @@ const placeholderTitle = {
 };
 
 export default {
-    components: {FeedNames},
+    components: {FeedNames, StarButton},
     props: {
         post: Object,
         size: {

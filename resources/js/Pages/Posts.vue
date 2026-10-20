@@ -1,6 +1,7 @@
 <template>
     <div class="md:flex h-full min-h-0">
-        <FlipView v-if="postFormat === 'flip'" :posts="posts" :has-more="hasMore" :page="page" :feeds="feeds" :tag="tag" :feed="feed" :search="search" :since="since" />
+        <FlipView v-if="postFormat === 'flip'" :posts="shownPosts" :has-more="hasMore" :page="page" :feeds="feeds" :tag="tag" :feed="feed" :search="search" :since="since" :starred="starred"
+                  :empty-text="starred ? 'No starred posts' : 'No posts'" />
         <div v-show="postFormat !== 'flip'" class="md:w-1/3 xl:w-1/4 md:flex md:justify-end md:border-r dark:border-black px-6 bg-gray-50 dark:bg-gray-800 md:px-12 md:overflow-auto py-3">
             <div class="md:hidden mb-2">
                 <button @click="mobileShowOptions = !mobileShowOptions"
@@ -19,11 +20,12 @@
                     <FormatSelector :format="postFormat" @change="updateFormat($event)" />
                 </div>
 
-                <div v-if="search || since || tag || feed || page !== 1" class="mb-8">
+                <div v-if="search || since || tag || feed || starred || page !== 1" class="mb-8">
                     <Link href="./" data-flip-keep-drawer class="font-bold text-black dark:text-gray-400">&laquo; Back</Link>
                 </div>
 
-                <div class="mb-8">
+                <!-- Starred posts live in the browser, so search and the time filter don't apply to them -->
+                <div v-if="!starred" class="mb-8">
                     <h2 class="font-bold mb-2 dark:text-gray-400">Search</h2>
                     <form @submit.prevent="submitSearch">
                         <input type="text"
@@ -41,6 +43,17 @@
                               :class="{'bg-gray-200 text-gray-900 font-bold dark:bg-gray-700 dark:text-gray-200': option.value === since}"
                               :aria-current="option.value === since ? 'true' : null">{{ option.label }}</Link>
                     </div>
+                </div>
+
+                <div class="mb-8">
+                    <Link href="starred" data-flip-keep-drawer
+                          class="inline-flex items-center gap-1.5 font-bold text-gray-600 dark:text-gray-500 hover:text-black dark:hover:text-gray-300"
+                          :class="{'text-black! dark:text-gray-300!': starred}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" class="text-amber-400">
+                            <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                        </svg>
+                        Starred ({{ starredCount }})
+                    </Link>
                 </div>
 
                 <div v-if="tags.length > 0" class="mb-8">
@@ -67,6 +80,7 @@
                     <Link href="./">Posts</Link>
                     <span v-if="tag"> / #{{ tag }}</span>
                     <span v-if="feed && feeds.length === 1"> / <span :style="{ color: feeds[0].color}">{{ feeds[0].name }}</span></span>
+                    <span v-if="starred"> / Starred</span>
                     <span v-if="search"> ?= {{ search }}</span>
                     <span v-if="since"> · {{ sinceLabel(since) }}</span>
                 </h2>
@@ -79,7 +93,8 @@
             <div :class="{'max-w-lg': postFormat === 'card', 'max-w-2xl': postFormat === 'list', 'w-full': postFormat === 'compact' || postFormat === 'grid'}">
 
                 <div class="-mx-4" :class="{ 'flex flex-wrap': postFormat === 'grid' }">
-                    <template v-for="post in posts">
+                    <p v-if="starred && shownPosts.length === 0" class="px-4 py-6 text-gray-600 dark:text-gray-400">No starred posts yet. Use the star on a post to keep it here.</p>
+                    <template v-for="post in shownPosts" :key="post.url">
                         <Post :post="post" :format="postFormat" :class="{'flex-1 min-w-sm w-md max-w-lg': postFormat === 'grid'}"/>
                         <div v-if="postFormat !== 'grid'" class="px-4">
                             <hr class="dark:border-gray-700">
@@ -104,6 +119,7 @@
     import FormatSelector from "../Parts/FormatSelector.vue";
     import FlipView from "../Parts/FlipView.vue";
     import {SINCE_OPTIONS, listingData, sinceLabel} from "../listing";
+    import {starred as starredStore} from "../starred";
 
     export default {
         components: {FlipView, FormatSelector, Tag, Feed, Post},
@@ -127,6 +143,10 @@
             since: {
                 type: String,
                 default: '',
+            },
+            starred: {
+                type: Boolean,
+                default: false,
             }
         },
         computed: {
@@ -144,6 +164,12 @@
             },
             pagePath() {
                 return window.location.pathname;
+            },
+            shownPosts() {
+                return this.starred ? starredStore.list() : this.posts;
+            },
+            starredCount() {
+                return starredStore.count();
             }
         },
         data() {

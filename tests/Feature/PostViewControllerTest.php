@@ -177,4 +177,15 @@ final class PostViewControllerTest extends TestCase
 
         $this->get('/t/News?page=2')->assertInertia(fn (Assert $page) => $page->where('hasMore', false));
     }
+
+    public function test_starred_view_renders_without_server_posts(): void
+    {
+        $this->get('/starred')->assertInertia(function (Assert $page) {
+            $page->component('Posts');
+            $page->where('starred', true);
+            $page->has('posts', 0);
+            $page->has('feeds', 3);
+            $page->where('hasMore', false);
+        });
+    }
 }

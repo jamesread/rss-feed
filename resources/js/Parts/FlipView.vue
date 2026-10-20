@@ -12,7 +12,7 @@
                      :style="safeAreaPadding"
                      :aria-label="`Page ${i + 1} of ${pages.length}`">
                 <div v-if="p.type === 'empty'" class="h-full flex flex-col items-center justify-center gap-3 text-gray-600 dark:text-gray-400">
-                    <p class="text-xl font-bold">No posts</p>
+                    <p class="text-xl font-bold">{{ emptyText }}</p>
                     <Link v-if="p.nav.hasPrev" :href="pagePath" :data="pageData(page - 1)" class="font-bold hover:text-black dark:hover:text-gray-200">&laquo; Previous page</Link>
                 </div>
                 <div v-else class="grid h-full gap-0.5"
@@ -43,7 +43,7 @@
                 <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
             </svg>
             <span class="truncate">
-                Posts<span v-if="tag"> / #{{ tag }}</span><span v-if="feed && feeds.length === 1"> / <span :style="{color: feeds[0].color}">{{ feeds[0].name }}</span></span><span v-if="search"> ?= {{ search }}</span><span v-if="since"> · {{ sinceLabel(since) }}</span>
+                Posts<span v-if="starred"> / Starred</span><span v-if="tag"> / #{{ tag }}</span><span v-if="feed && feeds.length === 1"> / <span :style="{color: feeds[0].color}">{{ feeds[0].name }}</span></span><span v-if="search"> ?= {{ search }}</span><span v-if="since"> · {{ sinceLabel(since) }}</span>
             </span>
         </button>
 
@@ -114,6 +114,14 @@ export default {
         since: {
             type: String,
             default: '',
+        },
+        starred: {
+            type: Boolean,
+            default: false,
+        },
+        emptyText: {
+            type: String,
+            default: 'No posts',
         },
     },
     data() {

@@ -29,6 +29,7 @@ The following features are built into the application:
 - System-based dark/light theme.
 - Post title/description search.
 - Time filter (last 24 hours, 7 days or 30 days), combinable with search.
+- Starred / read-later posts. Stars are kept in your browser, so they are per device and survive old posts being pruned.
 - Ready-to-use docker image.
 - Mobile screen compatible.
 - Built-in support to prune old post data.

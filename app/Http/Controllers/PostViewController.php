@@ -54,6 +54,24 @@ class PostViewController extends Controller
         return $this->renderPostsView($request, $feeds, $feeds, ['feed' => $feed]);
     }
 
+    /**
+     * Starred posts are kept in the browser, so the page only gets the feeds for its sidebar.
+     */
+    public function starred()
+    {
+        return Inertia::render('Posts', [
+            'feeds' => $this->feedProvider->getAll(),
+            'posts' => [],
+            'hasMore' => false,
+            'page' => 1,
+            'search' => '',
+            'since' => '',
+            'tag' => '',
+            'feed' => '',
+            'starred' => true,
+        ]);
+    }
+
     protected function renderPostsView(Request $request, ConfiguredFeedList $displayFeeds, ConfiguredFeedList $postFeeds, array $additionalData = [])
     {
         $page = max(intval($request->input('page')), 1);

@@ -231,6 +231,11 @@ describe('buildPages', () => {
         assertExactCover(end.cols, end.rows, end.tiles);
     });
 
+    test('starred posts (page 1, no more pages) get no prev/next tiles', () => {
+        const {pages} = buildPages({posts: makePosts(12), page: 1, width: w, height: h, hasMore: false});
+        expect(pages.flatMap(p => p.tiles).filter(t => t.kind !== 'post')).toEqual([]);
+    });
+
     test('next tile follows hasMore, not the post count', () => {
         const collapsed = buildPages({posts: makePosts(94), page: 1, width: w, height: h, hasMore: true}).pages;
         expect(collapsed[collapsed.length - 1].tiles.map(t => t.kind)).toContain('next');

@@ -13,6 +13,7 @@
             <div class="flex gap-2 basis-full md:basis-auto">
                 <Tag v-for="tag in post.feed.tags" :tag="tag"/>
             </div>
+            <StarButton :post="post" class="ml-auto size-7 -my-1 text-gray-500 hover:text-gray-900 dark:hover:text-gray-200" />
         </div>
 
         <div :class="{'flex items-center gap-5': formatList && post.thumbnail}">
@@ -60,10 +61,11 @@
 <script>
 import Tag from "./Tag.vue";
 import FeedNames from "./FeedNames.vue";
+import StarButton from "./StarButton.vue";
 import {timestampToRelativeTime} from "../util";
 
 export default {
-    components: {FeedNames, Tag},
+    components: {FeedNames, StarButton, Tag},
     props: {
         post: Object,
         format: {
