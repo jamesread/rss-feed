@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Feed;
+use App\Models\Post;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -107,5 +108,53 @@ final class PostViewControllerTest extends TestCase
             $page->where('feeds.1.fetch_error', 'HTTP 404');
             $page->where('feeds.1.fetch_succeeded_at', 1792483618);
         });
+    }
+
+    protected function makeRecentPosts(): void
+    {
+        Post::query()->update(['published_at' => time() - (40 * 86400)]);
+        $feedA = Feed::query()->where('url', 'http://example.com/a.xml')->first();
+        Post::factory()->create(['feed_id' => $feedA->id, 'title' => 'Fresh partnership news', 'published_at' => time() - 3600]);
+        Post::factory()->create(['feed_id' => $feedA->id, 'title' => 'Fresh weather news', 'published_at' => time() - 7200]);
+        Post::factory()->create(['feed_id' => $feedA->id, 'title' => 'Partnership from last week', 'published_at' => time() - (3 * 86400)]);
+    }
+
+    public function test_since_24h_lists_only_recent_posts(): void
+    {
+        $this->makeRecentPosts();
+
+        $resp = $this->get('/?since=24h');
+        $resp->assertInertia(function (Assert $page) {
+            $page->where('since', '24h');
+            $page->has('posts', 2);
+        });
+
+        $this->get('/?since=7d')->assertInertia(fn (Assert $page) => $page->has('posts', 3));
+        $this->get('/?since=30d')->assertInertia(fn (Assert $page) => $page->has('posts', 3));
+    }
+
+    public function test_unknown_since_lists_all_posts(): void
+    {
+        $this->makeRecentPosts();
+
+        $resp = $this->get('/?since=1y');
+        $resp->assertInertia(function (Assert $page) {
+            $page->where('since', '');
+            $page->has('posts', 100);
+        });
+    }
+
+    public function test_since_combines_with_search_on_tag_view(): void
+    {
+        $this->makeRecentPosts();
+
+        $resp = $this->get('/t/Tech?since=7d&query=partnership');
+        $resp->assertInertia(function (Assert $page) {
+            $page->where('since', '7d');
+            $page->where('search', 'partnership');
+            $page->has('posts', 2);
+        });
+
+        $this->get('/t/Animals?since=7d&query=partnership')->assertInertia(fn (Assert $page) => $page->has('posts', 0));
     }
 }

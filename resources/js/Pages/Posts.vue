@@ -1,6 +1,6 @@
 <template>
     <div class="md:flex h-full min-h-0">
-        <FlipView v-if="postFormat === 'flip'" :posts="posts" :page="page" :feeds="feeds" :tag="tag" :feed="feed" :search="search" />
+        <FlipView v-if="postFormat === 'flip'" :posts="posts" :page="page" :feeds="feeds" :tag="tag" :feed="feed" :search="search" :since="since" />
         <div v-show="postFormat !== 'flip'" class="md:w-1/3 xl:w-1/4 md:flex md:justify-end md:border-r dark:border-black px-6 bg-gray-50 dark:bg-gray-800 md:px-12 md:overflow-auto py-3">
             <div class="md:hidden mb-2">
                 <button @click="mobileShowOptions = !mobileShowOptions"
@@ -19,7 +19,7 @@
                     <FormatSelector :format="postFormat" @change="updateFormat($event)" />
                 </div>
 
-                <div v-if="search || tag || feed || page !== 1" class="mb-8">
+                <div v-if="search || since || tag || feed || page !== 1" class="mb-8">
                     <Link href="./" data-flip-keep-drawer class="font-bold text-black dark:text-gray-400">&laquo; Back</Link>
                 </div>
 
@@ -32,6 +32,15 @@
                                class="border border-gray-300 dark:border-black rounded-sm px-2 py-1 w-full bg-white dark:bg-gray-900">
                         <button type="submit" class="hidden"></button>
                     </form>
+                    <div class="mt-3 flex border rounded-sm border-gray-300 dark:border-gray-600 divide-x divide-gray-300 dark:divide-gray-600 text-sm text-gray-600 dark:text-gray-400">
+                        <Link v-for="option in sinceOptions"
+                              :href="pagePath"
+                              :data="listingData({query: search, since: option.value})"
+                              data-flip-keep-drawer
+                              class="flex-1 text-center px-2 py-1 hover:text-black dark:hover:text-gray-200"
+                              :class="{'bg-gray-200 text-gray-900 font-bold dark:bg-gray-700 dark:text-gray-200': option.value === since}"
+                              :aria-current="option.value === since ? 'true' : null">{{ option.label }}</Link>
+                    </div>
                 </div>
 
                 <div v-if="tags.length > 0" class="mb-8">
@@ -59,6 +68,7 @@
                     <span v-if="tag"> / #{{ tag }}</span>
                     <span v-if="feed && feeds.length === 1"> / <span :style="{ color: feeds[0].color}">{{ feeds[0].name }}</span></span>
                     <span v-if="search"> ?= {{ search }}</span>
+                    <span v-if="since"> · {{ sinceLabel(since) }}</span>
                 </h2>
 
                 <div>
@@ -93,6 +103,7 @@
     import Tag from "../Parts/Tag.vue";
     import FormatSelector from "../Parts/FormatSelector.vue";
     import FlipView from "../Parts/FlipView.vue";
+    import {SINCE_OPTIONS, listingData, sinceLabel} from "../listing";
 
     export default {
         components: {FlipView, FormatSelector, Tag, Feed, Post},
@@ -111,6 +122,10 @@
             search: {
                 type: String,
                 default: null,
+            },
+            since: {
+                type: String,
+                default: '',
             }
         },
         computed: {
@@ -133,17 +148,20 @@
         data() {
             return {
                 searchInputVal: this.search,
+                sinceOptions: SINCE_OPTIONS,
                 postFormat: 'card',
                 mobileShowOptions: false,
             }
         },
         methods: {
+            listingData,
+            sinceLabel,
             pageData(page) {
-                return this.search ? {page, query: this.search} : {page};
+                return listingData({page, query: this.search, since: this.since});
             },
             submitSearch() {
                 this.$inertia.visit(this.pagePath, {
-                    data: {query: this.searchInputVal}
+                    data: listingData({query: this.searchInputVal, since: this.since})
                 });
             },
             updateFormat(postFormat) {

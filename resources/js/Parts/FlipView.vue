@@ -43,7 +43,7 @@
                 <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
             </svg>
             <span class="truncate">
-                Posts<span v-if="tag"> / #{{ tag }}</span><span v-if="feed && feeds.length === 1"> / <span :style="{color: feeds[0].color}">{{ feeds[0].name }}</span></span><span v-if="search"> ?= {{ search }}</span>
+                Posts<span v-if="tag"> / #{{ tag }}</span><span v-if="feed && feeds.length === 1"> / <span :style="{color: feeds[0].color}">{{ feeds[0].name }}</span></span><span v-if="search"> ?= {{ search }}</span><span v-if="since"> · {{ sinceLabel(since) }}</span>
             </span>
         </button>
 
@@ -92,6 +92,7 @@
 <script>
 import FlipTile from "./FlipTile.vue";
 import {buildPages, findPageForPost, firstPostOnPage} from "../flip/layout";
+import {listingData, sinceLabel} from "../listing";
 
 const WHEEL_THRESHOLD = 50;
 const WHEEL_IDLE_MS = 200;
@@ -109,6 +110,10 @@ export default {
         tag: String,
         feed: String,
         search: String,
+        since: {
+            type: String,
+            default: '',
+        },
     },
     data() {
         return {
@@ -136,8 +141,9 @@ export default {
         },
     },
     methods: {
+        sinceLabel,
         pageData(page) {
-            return this.search ? {page, query: this.search} : {page};
+            return listingData({page, query: this.search, since: this.since});
         },
         gridArea(tile) {
             return {

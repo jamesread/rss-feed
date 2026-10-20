@@ -11,6 +11,15 @@ use Inertia\Inertia;
 
 class PostViewController extends Controller
 {
+    /**
+     * Time filter options, mapped to their period in seconds.
+     */
+    protected const array SINCE_PERIODS = [
+        '24h' => 86400,
+        '7d' => 604800,
+        '30d' => 2592000,
+    ];
+
     public function __construct(
         protected PostProvider $postProvider,
         protected ConfiguredFeedProvider $feedProvider,
@@ -49,15 +58,22 @@ class PostViewController extends Controller
     {
         $page = max(intval($request->input('page')), 1);
         $query = $request->get('query', '');
-        $subFilter = null;
+        $since = $request->get('since', '');
+        $since = is_string($since) && isset(self::SINCE_PERIODS[$since]) ? $since : '';
+        $escapedQuery = str_replace(['%', '_', '\\'], ['\\%', '\\_', '\\\\'], $query);
 
-        if ($query) {
-            $escapedQuery = str_replace(['%', '_', '\\'], ['\\%', '\\_', '\\\\'], $query);
-            $subFilter = function (Builder $where) use ($escapedQuery) {
-                $where->where('title', 'like', '%' . $escapedQuery . '%')
-                    ->orWhere('description', 'like', '%' . $escapedQuery . '%');
-            };
-        }
+        $subFilter = function (Builder $where) use ($query, $escapedQuery, $since) {
+            if ($query) {
+                $where->where(function (Builder $where) use ($escapedQuery) {
+                    $where->where('title', 'like', '%' . $escapedQuery . '%')
+                        ->orWhere('description', 'like', '%' . $escapedQuery . '%');
+                });
+            }
+
+            if ($since) {
+                $where->where('published_at', '>=', time() - self::SINCE_PERIODS[$since]);
+            }
+        };
 
         $posts = $this->postProvider->getLatest(
             $postFeeds,
@@ -71,6 +87,7 @@ class PostViewController extends Controller
             'posts' => $posts,
             'page' => $page,
             'search' => $query,
+            'since' => $since,
             'tag' => '',
             'feed' => '',
         ];

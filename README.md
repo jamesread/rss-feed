@@ -28,6 +28,7 @@ The following features are built into the application:
 - Feeds managed via a single plaintext file.
 - System-based dark/light theme.
 - Post title/description search.
+- Time filter (last 24 hours, 7 days or 30 days), combinable with search.
 - Ready-to-use docker image.
 - Mobile screen compatible.
 - Built-in support to prune old post data.
