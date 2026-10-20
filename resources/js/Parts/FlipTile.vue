@@ -18,6 +18,15 @@
                    class="after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-4 focus-visible:after:ring-inset focus-visible:after:ring-white/80">{{ post.title }}</a>
             </h3>
 
+            <div v-if="showFavicon" class="flex-1 min-h-0 flex items-center justify-center">
+                <img :src="`storage/${post.feed.favicon}`"
+                     loading="lazy"
+                     alt=""
+                     class="h-full aspect-square object-contain rounded-xl bg-white/90 p-2 shadow"
+                     :class="faviconClass"
+                     @error="faviconFailed = true">
+            </div>
+
             <div class="flex flex-col gap-1">
                 <p v-if="size === 'xl' && post.description" class="text-sm text-white/80 line-clamp-2">{{ post.description }}</p>
                 <div class="flex items-center gap-2 text-xs min-w-0">
@@ -40,6 +49,13 @@ const thumbnailTitle = {
     s: 'text-sm line-clamp-3',
 };
 
+const faviconSize = {
+    xl: 'max-h-24',
+    l: 'max-h-24',
+    m: 'max-h-16',
+    s: 'max-h-12',
+};
+
 const placeholderTitle = {
     xl: 'text-3xl sm:text-4xl line-clamp-6 text-white/90',
     l: 'text-2xl line-clamp-5 text-white/90',
@@ -55,7 +71,18 @@ export default {
             default: 'm',
         },
     },
+    data() {
+        return {
+            faviconFailed: false,
+        };
+    },
     computed: {
+        showFavicon() {
+            return !this.post.thumbnail && !!this.post.feed.favicon && !this.faviconFailed;
+        },
+        faviconClass() {
+            return faviconSize[this.size];
+        },
         titleClass() {
             return (this.post.thumbnail ? thumbnailTitle : placeholderTitle)[this.size];
         },

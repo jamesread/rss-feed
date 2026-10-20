@@ -27,12 +27,19 @@
             <div v-if="formatGrid && !post.thumbnail">
               <a :href="post.url" target="_blank"
                  :title="post.title"
-                 class="block overflow-hidden rounded-sm my-2 border dark:border-black">
+                 class="relative block overflow-hidden rounded-sm my-2 border dark:border-black">
                 <div :style="{backgroundColor: post.feed.color}"
                     class="w-full object-cover saturate-80 text-white/50
                      flex items-center p-5 opacity-60
                      text-5xl font-bold h-32 md:h-48 lg:h-64">
                   {{ post.title }}
+                </div>
+                <div v-if="showFavicon" class="absolute inset-0 flex items-center justify-center">
+                  <img :src="`storage/${post.feed.favicon}`"
+                       loading="lazy"
+                       alt=""
+                       class="size-24 max-h-[75%] w-auto aspect-square object-contain rounded-xl bg-white/90 p-2 shadow"
+                       @error="faviconFailed = true">
                 </div>
               </a>
             </div>
@@ -62,7 +69,15 @@ export default {
             default: 'list',
         }
     },
+    data() {
+        return {
+            faviconFailed: false,
+        };
+    },
     computed: {
+        showFavicon() {
+            return !!this.post.feed.favicon && !this.faviconFailed;
+        },
         isoTime() {
             return (new Date(this.post.published_at * 1000)).toISOString();
         },

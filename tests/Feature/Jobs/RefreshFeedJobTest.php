@@ -2,11 +2,13 @@
 
 namespace Tests\Feature\Jobs;
 
+use App\Jobs\FetchFeedFaviconJob;
 use App\Jobs\RefreshFeedJob;
 use App\Models\Feed;
 use App\Models\Post;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
@@ -36,7 +38,9 @@ final class RefreshFeedJobTest extends TestCase
     </item>
   </channel>
 </rss>
-END)
+END),
+            // Keep thumbnail and favicon lookups for the post offline
+            '*' => Http::response('', 404),
         ]);
 
         $this->assertEquals(0, $feed->posts()->count());
@@ -55,6 +59,96 @@ END)
             'description' => 'A little description',
             'published_at' => 1656068400,
         ]);
+    }
+
+    public function test_unreachable_feed_completes_and_updates_last_fetched_at(): void
+    {
+        $feed = Feed::factory()->create([
+            'url' => 'https://example.com/feed.xml',
+            'last_fetched_at' => time() - 50000,
+        ]);
+        Http::fake(['example.com/*' => Http::failedConnection('Could not resolve host: example.com')]);
+
+        dispatch_sync(new RefreshFeedJob($feed));
+
+        $this->assertEquals(0, $feed->posts()->count());
+        $this->assertGreaterThan(time() - 10, $feed->refresh()->last_fetched_at);
+    }
+
+    public function test_non_successful_response_is_logged(): void
+    {
+        $feed = Feed::factory()->create(['url' => 'https://example.com/feed.xml']);
+        Http::fake(['example.com/*' => Http::response('', 404)]);
+        Log::spy();
+
+        dispatch_sync(new RefreshFeedJob($feed));
+
+        Log::shouldHaveReceived('warning')->once()->with('Feed fetch failed', [
+            'url' => 'https://example.com/feed.xml',
+            'reason' => 'HTTP 404',
+        ]);
+    }
+
+    public function test_connection_error_is_logged(): void
+    {
+        $feed = Feed::factory()->create(['url' => 'https://example.com/feed.xml']);
+        Http::fake(['example.com/*' => Http::failedConnection('Could not resolve host: example.com')]);
+        Log::spy();
+
+        dispatch_sync(new RefreshFeedJob($feed));
+
+        Log::shouldHaveReceived('warning')->once()->with('Feed fetch failed', [
+            'url' => 'https://example.com/feed.xml',
+            'reason' => 'Could not resolve host: example.com',
+        ]);
+    }
+
+    public function test_successful_fetch_is_not_logged(): void
+    {
+        $feed = Feed::factory()->create(['url' => 'https://example.com/feed.xml']);
+        Http::fake(['example.com/*' => Http::response('<rss version="2.0"><channel></channel></rss>')]);
+        Log::spy();
+
+        dispatch_sync(new RefreshFeedJob($feed));
+
+        Log::shouldNotHaveReceived('warning');
+    }
+
+    public function test_favicon_job_is_dispatched_when_due(): void
+    {
+        $feed = Feed::factory()->create(['url' => 'https://example.com/feed.xml', 'favicon_checked_at' => 0]);
+        Http::fake(['example.com/*' => Http::response('<rss version="2.0"><channel></channel></rss>')]);
+        Queue::fake([FetchFeedFaviconJob::class]);
+
+        dispatch_sync(new RefreshFeedJob($feed));
+
+        Queue::assertPushed(FetchFeedFaviconJob::class, 1);
+    }
+
+    public function test_favicon_job_is_not_dispatched_when_recently_checked(): void
+    {
+        $feed = Feed::factory()->create([
+            'url' => 'https://example.com/feed.xml',
+            'favicon_checked_at' => time() - (2 * 86400),
+        ]);
+        Http::fake(['example.com/*' => Http::response('<rss version="2.0"><channel></channel></rss>')]);
+        Queue::fake([FetchFeedFaviconJob::class]);
+
+        dispatch_sync(new RefreshFeedJob($feed));
+
+        Queue::assertNotPushed(FetchFeedFaviconJob::class);
+    }
+
+    public function test_favicon_job_is_not_dispatched_when_thumbnails_disabled(): void
+    {
+        config(['app.load_post_thumbnails' => false]);
+        $feed = Feed::factory()->create(['url' => 'https://example.com/feed.xml', 'favicon_checked_at' => 0]);
+        Http::fake(['example.com/*' => Http::response('<rss version="2.0"><channel></channel></rss>')]);
+        Queue::fake([FetchFeedFaviconJob::class]);
+
+        dispatch_sync(new RefreshFeedJob($feed));
+
+        Queue::assertNotPushed(FetchFeedFaviconJob::class);
     }
 
     public function test_job_is_unique_per_feed(): void

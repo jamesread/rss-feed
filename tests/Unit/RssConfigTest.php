@@ -43,6 +43,29 @@ final class RssConfigTest extends TestCase
         $this->assertEquals($expected, $config->toString());
     }
 
+    public function test_parse_from_string_tolerates_extra_whitespace(): void
+    {
+        $config = new RssConfig();
+        $config->parseFromString(implode("\n", [
+            'https://a.com/feed Globex #Ecosystem  #globex',
+            'https://b.com/feed  Example #news',
+            "https://c.com/feed\tTabbed\t#a\t\t#b",
+            'https://d.com/feed Stray #a stray #b',
+        ]));
+
+        $this->assertEquals('Globex', $config->getName('https://a.com/feed'));
+        $this->assertSame(['#Ecosystem', '#globex'], $config->getTags('https://a.com/feed'));
+        $this->assertEquals('Example', $config->getName('https://b.com/feed'));
+        $this->assertSame(['#news'], $config->getTags('https://b.com/feed'));
+        $this->assertEquals('Tabbed', $config->getName('https://c.com/feed'));
+        $this->assertSame(['#a', '#b'], $config->getTags('https://c.com/feed'));
+        $this->assertSame(['#a', '#b'], $config->getTags('https://d.com/feed'));
+
+        foreach ($config->getFeedUrls() as $url) {
+            $this->assertTrue(array_is_list($config->getTags($url)), "Tags for {$url} are not a list");
+        }
+    }
+
     public function test_parse_from_string(): void
     {
         $config = new RssConfig();

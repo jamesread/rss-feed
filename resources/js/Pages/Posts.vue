@@ -29,7 +29,6 @@
                         <input type="text"
                                v-model="searchInputVal"
                                placeholder="Post name or description"
-                               @change="submitSearch"
                                class="border border-gray-300 dark:border-black rounded-sm px-2 py-1 w-full bg-white dark:bg-gray-900">
                         <button type="submit" class="hidden"></button>
                     </form>
@@ -79,8 +78,8 @@
                 </div>
 
                 <div class="py-2 flex">
-                    <Link v-if="page > 1" :href="pagePath" :data="{page: page-1}" class="cursor-pointer text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 font-bold py-2 hover:text-black">&laquo; Previous Page</Link>
-                    <Link v-if="posts.length === 100" :href="pagePath" :data="{page: page + 1}" class="ml-auto cursor-pointer text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 font-bold py-2 hover:text-black">Next Page &raquo;</Link>
+                    <Link v-if="page > 1" :href="pagePath" :data="pageData(page - 1)" class="cursor-pointer text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 font-bold py-2 hover:text-black">&laquo; Previous Page</Link>
+                    <Link v-if="posts.length === 100" :href="pagePath" :data="pageData(page + 1)" class="ml-auto cursor-pointer text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 font-bold py-2 hover:text-black">Next Page &raquo;</Link>
                 </div>
 
             </div>
@@ -139,6 +138,9 @@
             }
         },
         methods: {
+            pageData(page) {
+                return this.search ? {page, query: this.search} : {page};
+            },
             submitSearch() {
                 this.$inertia.visit(this.pagePath, {
                     data: {query: this.searchInputVal}

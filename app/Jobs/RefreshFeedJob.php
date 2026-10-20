@@ -49,6 +49,11 @@ class RefreshFeedJob implements ShouldQueue, ShouldBeUnique
 
         $this->feed->last_fetched_at = time();
         $this->feed->save();
+
+        $faviconDue = $this->feed->favicon_checked_at < time() - (7 * 86400);
+        if ($loadThumbs && $faviconDue) {
+            dispatch(new FetchFeedFaviconJob($this->feed));
+        }
     }
 
     /**

@@ -13,7 +13,7 @@
                      :aria-label="`Page ${i + 1} of ${pages.length}`">
                 <div v-if="p.type === 'empty'" class="h-full flex flex-col items-center justify-center gap-3 text-gray-600 dark:text-gray-400">
                     <p class="text-xl font-bold">No posts</p>
-                    <Link v-if="p.nav.hasPrev" :href="pagePath" :data="{page: page - 1}" class="font-bold hover:text-black dark:hover:text-gray-200">&laquo; Previous page</Link>
+                    <Link v-if="p.nav.hasPrev" :href="pagePath" :data="pageData(page - 1)" class="font-bold hover:text-black dark:hover:text-gray-200">&laquo; Previous page</Link>
                 </div>
                 <div v-else class="grid h-full gap-0.5"
                      :style="{gridTemplateColumns: `repeat(${p.cols}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${p.rows}, minmax(0, 1fr))`}">
@@ -21,7 +21,7 @@
                         <FlipTile v-if="tile.kind === 'post'" :post="posts[tile.postIndex]" :size="tile.size" :style="gridArea(tile)" />
                         <Link v-else
                               :href="pagePath"
-                              :data="{page: tile.kind === 'next' ? page + 1 : page - 1}"
+                              :data="pageData(tile.kind === 'next' ? page + 1 : page - 1)"
                               :style="gridArea(tile)"
                               class="flex items-center justify-center text-2xl font-bold bg-gray-200 hover:bg-gray-300 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300">
                             <template v-if="tile.kind === 'next'">Next page &raquo;</template>
@@ -136,6 +136,9 @@ export default {
         },
     },
     methods: {
+        pageData(page) {
+            return this.search ? {page, query: this.search} : {page};
+        },
         gridArea(tile) {
             return {
                 gridColumn: `${tile.col} / span ${tile.colSpan}`,

@@ -28,6 +28,7 @@ class ConfiguredFeed implements JsonSerializable
             'url' => $this->url,
             'tags' => $this->tags,
             'hidden' => $this->hidden,
+            'favicon' => $this->feed->favicon ?? '',
             'reloading' => $this->reloading,
             'outdated' => $this->isOutdated(),
         ];

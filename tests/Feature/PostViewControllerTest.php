@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Feed;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -78,6 +79,18 @@ final class PostViewControllerTest extends TestCase
             $page->where('search', '');
             $page->where('tag', '');
             $page->where('feed', 'http://example.com/b.xml');
+        });
+    }
+
+    public function test_feed_favicon_is_included(): void
+    {
+        Feed::query()->where('url', 'http://example.com/b.xml')->update(['favicon' => 'favicons/2.png']);
+
+        $resp = $this->get('/');
+        $resp->assertInertia(function (Assert $page) {
+            $page->where('feeds.0.favicon', '');
+            $page->where('feeds.1.favicon', 'favicons/2.png');
+            $page->where('posts.0.feed.favicon', fn ($favicon) => is_string($favicon));
         });
     }
 }

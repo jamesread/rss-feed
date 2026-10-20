@@ -145,6 +145,9 @@ https://example.com/feed.xml Example #updates #news
 # Lines starting with a hash are considered comments.
 # Empty lines are fine and will be ignored.
 
+# The URL, name and tags can be separated by any number of spaces or tabs.
+https://example.com/feed-e.xml   Spaced_Out    #news   #updates
+
 # Underscores in names will be converted to spaces.
 https://example.com/feed-b.xml News_Site #news
 
@@ -175,6 +178,8 @@ APP_CONFIG_FILE=/app/storage/feeds.txt
 # Enable or disable the loading of post thumbnails.
 # Does not control them within the UI, but controls the fetching
 # when posts are fetched.
+# This also controls fetching each feed's website favicon (checked at most
+# once a week), which flip and grid views show for posts without a thumbnail.
 # Defaults to true.
 APP_LOAD_POST_THUMBNAILS=true
 
@@ -209,6 +214,13 @@ The following environment can be used to configure our default docker container 
 # You can set this to an unprivileged port instead (eg. 8080) and then
 # map using that port instead of 80 in the docker/podman command/compose-file.
 SERVER_PORT=80
+
+# Where application logs are written.
+# The image writes to both the log file in storage/logs and the container
+# output, so warnings such as unreachable feeds ("Feed fetch failed" with
+# the feed URL and reason) show up in `docker logs`.
+# Set to "single" to only log to the file.
+LOG_STACK=single,stderr
 ```
 
 ## Usage Behind a Reverse Proxy

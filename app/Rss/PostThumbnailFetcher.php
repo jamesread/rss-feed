@@ -4,8 +4,11 @@ namespace App\Rss;
 
 use App\Models\Post;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Psr\Http\Message\UriInterface;
+use UnexpectedValueException;
 
 class PostThumbnailFetcher
 {
@@ -68,8 +71,24 @@ class PostThumbnailFetcher
         '::ffff:192.168.',
     ];
 
+    /**
+     * Image types that may be stored, mapped to their file extension.
+     * SVG is excluded since it can contain script and is served from our origin.
+     */
+    protected const array IMAGE_EXTENSIONS = [
+        'image/jpeg' => 'jpeg',
+        'image/png' => 'png',
+        'image/gif' => 'gif',
+        'image/webp' => 'webp',
+        'image/avif' => 'avif',
+    ];
+
     public function fetchAndStoreForPost(Post $post): bool
     {
+        if (!$this->isSafeUrl($post->url)) {
+            return false;
+        }
+
         $imageUrl = $this->getThumbLinkFromUrl($post->url);
         if (!$imageUrl) {
             return false;
@@ -99,7 +118,7 @@ class PostThumbnailFetcher
     /**
      * Check if a URL is safe to fetch (not pointing to internal/private IPs).
      */
-    protected function isSafeUrl(string $url): bool
+    public function isSafeUrl(string $url): bool
     {
         $host = parse_url($url, PHP_URL_HOST);
         if (!$host) {
@@ -128,16 +147,17 @@ class PostThumbnailFetcher
 
     /**
      * @return null|array{extension: string, data: string}
+     * @param array<string, string> $allowedTypes MIME types mapped to the extension to use
      * @throws ConnectionException
      */
-    protected function downloadImageFromUrl(string $url): ?array
+    public function downloadImageFromUrl(string $url, array $allowedTypes = self::IMAGE_EXTENSIONS): ?array
     {
         if (!$this->isSafeUrl($url)) {
             return null;
         }
 
-        $imageResponse = Http::timeout(10)->withUserAgent('rss/4.5.6')->get($url);
-        if (!$imageResponse->successful()) {
+        $imageResponse = $this->get($url);
+        if (!$imageResponse?->successful()) {
             return null;
         }
 
@@ -149,20 +169,47 @@ class PostThumbnailFetcher
 
         $tempFile = tmpfile();
         fwrite($tempFile, $imageData);
-        $mimeSplit = explode('/', mime_content_type($tempFile) ?: '');
+        $mimeType = mime_content_type($tempFile) ?: '';
         fclose($tempFile);
-        if (count($mimeSplit) < 2 || $mimeSplit[0] !== 'image') {
+
+        $extension = $allowedTypes[$mimeType] ?? null;
+        if (!$extension) {
             return null;
         }
 
-        $extension = $mimeSplit[1];
         return ['data' => $imageData, 'extension' => $extension];
+    }
+
+    /**
+     * GET the given URL, following redirects only to safe targets.
+     * Returns null if a redirect pointed to an unsafe target.
+     * @throws ConnectionException
+     */
+    public function get(string $url): ?Response
+    {
+        $redirects = [
+            'max' => 5,
+            'on_redirect' => function ($request, $response, UriInterface $uri) {
+                if (!$this->isSafeUrl((string) $uri)) {
+                    throw new UnexpectedValueException("Unsafe redirect to {$uri}");
+                }
+            },
+        ];
+
+        try {
+            return Http::timeout(10)
+                ->withUserAgent('rss/4.5.6')
+                ->withOptions(['allow_redirects' => $redirects])
+                ->get($url);
+        } catch (UnexpectedValueException) {
+            return null;
+        }
     }
 
     protected function getThumbLinkFromUrl(string $url): string
     {
-        $pageResponse = Http::timeout(10)->withUserAgent('rss/4.5.6')->get($url);
-        if (!$pageResponse->successful()) {
+        $pageResponse = $this->get($url);
+        if (!$pageResponse?->successful()) {
             return '';
         }
 
