@@ -4,6 +4,8 @@
         <div ref="probe" class="absolute inset-0 pointer-events-none invisible" :style="safeAreaPadding"></div>
 
         <div ref="pager"
+             @touchstart.passive="onInteraction"
+             @pointerdown="onInteraction"
              class="flip-pager h-full flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory overscroll-contain touch-pan-x touch-pinch-zoom"
              @scroll.passive="onScroll"
              @wheel="onWheel">
@@ -71,6 +73,13 @@
             {{ current + 1 }} / {{ pages.length }}
         </div>
 
+        <!-- Auto-advance progress -->
+        <div v-if="autoplayEnabled"
+             class="absolute z-20 inset-x-0 h-0.5 pointer-events-none"
+             :style="{bottom: 'env(safe-area-inset-bottom)'}">
+            <div class="h-full bg-gray-900/40 dark:bg-white/40" :style="{width: `${autoplayProgress * 100}%`}"></div>
+        </div>
+
         <!-- Drawer; the posts page sidebar is teleported into #flip-drawer-body -->
         <div v-show="drawerOpen" class="absolute inset-0 z-40">
             <div class="absolute inset-0 bg-black/40" @click="closeDrawer"></div>
@@ -84,6 +93,15 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
                     </button>
                 </div>
+                <div class="px-6 mb-8">
+                    <label class="flex items-center justify-between gap-3 font-bold text-gray-900 dark:text-gray-400 cursor-pointer">
+                        <span>Auto-advance <span class="font-normal text-sm text-gray-600 dark:text-gray-500">every {{ autoplaySecondsOrDefault }} s</span></span>
+                        <input type="checkbox" class="peer sr-only" :checked="autoplayEnabled" @change="setAutoplay($event.target.checked)">
+                        <span class="relative inline-block w-9 h-5 shrink-0 rounded-full bg-gray-300 dark:bg-gray-600 transition peer-checked:bg-gray-800 dark:peer-checked:bg-gray-300 peer-focus-visible:ring-2 peer-focus-visible:ring-gray-500
+                                     after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-white dark:after:bg-gray-900 after:transition peer-checked:after:translate-x-4"
+                              aria-hidden="true"></span>
+                    </label>
+                </div>
                 <div id="flip-drawer-body" class="px-6 pb-6" @click="onDrawerClick"></div>
             </aside>
         </div>
@@ -93,6 +111,11 @@
 import FlipTile from "./FlipTile.vue";
 import {buildPages, findPageForPost, firstPostOnPage} from "../flip/layout";
 import {listingData, sinceLabel} from "../listing";
+import {router} from "@inertiajs/vue3";
+import {DEFAULT_INTERVAL_SECONDS, createAutoplayTimer} from "../flip/autoplay";
+
+const AUTOPLAY_TICK_MS = 250;
+const AUTOPLAY_STORAGE_KEY = 'flip-autoplay';
 
 const WHEEL_THRESHOLD = 50;
 const WHEEL_IDLE_MS = 200;
@@ -100,6 +123,14 @@ const WHEEL_IDLE_MS = 200;
 // Links marked with data-flip-keep-drawer reopen the drawer after the page visit
 const KEEP_DRAWER_KEY = 'flip-keep-drawer-open';
 const KEEP_DRAWER_MAX_AGE_MS = 10000;
+
+function readStoredAutoplay() {
+    try {
+        return window.localStorage.getItem(AUTOPLAY_STORAGE_KEY) === '1';
+    } catch (e) {
+        return false;
+    }
+}
 
 export default {
     components: {FlipTile},
@@ -123,6 +154,11 @@ export default {
             type: String,
             default: 'No posts',
         },
+        // Interval from the `autoplay` URL parameter, or null without one
+        autoplaySeconds: {
+            type: Number,
+            default: null,
+        },
     },
     data() {
         return {
@@ -130,6 +166,10 @@ export default {
             height: 0,
             current: 0,
             drawerOpen: false,
+            autoplayStored: readStoredAutoplay(),
+            autoplayOffForView: false,
+            autoplayProgress: 0,
+            autoplayReloading: false,
             safeAreaPadding: {
                 paddingTop: 'env(safe-area-inset-top)',
                 paddingRight: 'env(safe-area-inset-right)',
@@ -147,6 +187,22 @@ export default {
         },
         pagePath() {
             return window.location.pathname;
+        },
+        autoplaySecondsOrDefault() {
+            return this.autoplaySeconds || DEFAULT_INTERVAL_SECONDS;
+        },
+        autoplayEnabled() {
+            return !this.autoplayOffForView && (this.autoplaySeconds !== null || this.autoplayStored);
+        },
+    },
+    watch: {
+        autoplayEnabled(enabled) {
+            this.autoplayProgress = 0;
+            if (enabled) {
+                this.startAutoplay();
+            } else {
+                this.stopAutoplay();
+            }
         },
     },
     methods: {
@@ -185,6 +241,7 @@ export default {
             });
         },
         onWheel(event) {
+            this.onInteraction();
             // Horizontal trackpad gestures are left to native scroll-snap
             if (this.drawerOpen || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
                 return;
@@ -208,6 +265,7 @@ export default {
             }, WHEEL_IDLE_MS);
         },
         onKeydown(event) {
+            this.onInteraction();
             if (this.drawerOpen) {
                 if (event.key === 'Escape') {
                     this.closeDrawer();
@@ -250,6 +308,58 @@ export default {
                 const index = anchor === null ? this.current : findPageForPost(this.pages, anchor);
                 this.goTo(index, true);
             });
+        },
+        startAutoplay() {
+            this.stopAutoplay();
+            this.autoplayTimer = createAutoplayTimer(this.autoplaySecondsOrDefault * 1000, Date.now());
+            this.autoplayInterval = setInterval(this.onAutoplayTick, AUTOPLAY_TICK_MS);
+        },
+        stopAutoplay() {
+            clearInterval(this.autoplayInterval);
+            this.autoplayInterval = null;
+        },
+        onAutoplayTick() {
+            const paused = this.drawerOpen || document.hidden || this.autoplayReloading;
+            const {advance, progress} = this.autoplayTimer.tick(Date.now(), paused);
+            this.autoplayProgress = progress;
+            if (!advance) {
+                return;
+            }
+
+            if (this.current < this.pages.length - 1) {
+                this.goTo(this.current + 1);
+            } else {
+                this.reloadAndRestart();
+            }
+        },
+        reloadAndRestart() {
+            // Fetch fresh posts when looping, so a long-running display stays current
+            this.autoplayReloading = true;
+            router.reload({
+                only: ['posts', 'feeds', 'hasMore'],
+                // On failure keep showing the current posts and retry on the next loop,
+                // without Inertia's error handling taking over the display
+                onNetworkError: () => false,
+                onHttpException: () => false,
+                onFinish: () => {
+                    this.autoplayReloading = false;
+                    this.$nextTick(() => this.goTo(0, true));
+                },
+            });
+        },
+        onInteraction() {
+            if (this.autoplayTimer) {
+                this.autoplayTimer.pauseForInteraction(Date.now());
+            }
+        },
+        setAutoplay(enabled) {
+            this.autoplayOffForView = !enabled;
+            this.autoplayStored = enabled;
+            try {
+                window.localStorage.setItem(AUTOPLAY_STORAGE_KEY, enabled ? '1' : '0');
+            } catch (e) {
+                // Storage unavailable: the choice applies to this page view only
+            }
         },
         openDrawer() {
             this.drawerOpen = true;
@@ -294,12 +404,17 @@ export default {
         this.resizeObserver.observe(this.$refs.probe);
         this.keydownHandler = this.onKeydown.bind(this);
         window.addEventListener('keydown', this.keydownHandler);
+
+        if (this.autoplayEnabled) {
+            this.startAutoplay();
+        }
     },
     unmounted() {
         document.documentElement.classList.remove('flip-scroll-lock');
         this.resizeObserver.disconnect();
         window.removeEventListener('keydown', this.keydownHandler);
         clearTimeout(this.wheelTimer);
+        this.stopAutoplay();
         if (this.scrollFrame) {
             cancelAnimationFrame(this.scrollFrame);
         }

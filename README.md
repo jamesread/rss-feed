@@ -29,6 +29,7 @@ The following features are built into the application:
 - System-based dark/light theme.
 - Post title/description search.
 - Time filter (last 24 hours, 7 days or 30 days), combinable with search.
+- Flip view auto-advance for kiosk displays (see [Kiosk / Information Display](#kiosk--information-display)).
 - Starred / read-later posts. Stars are kept in your browser, so they are per device and survive old posts being pruned.
 - Ready-to-use docker image.
 - Mobile screen compatible.
@@ -229,6 +230,24 @@ SERVER_PORT=80
 # the feed URL and reason) show up in `docker logs`.
 # Set to "single" to only log to the file.
 LOG_STACK=single,stderr
+```
+
+## Kiosk / Information Display
+
+Flip view can turn its pages automatically, which suits a wall screen or a headless kiosk PC.
+Add `autoplay` to any posts URL to open it in flip view with auto-advance on:
+
+- `?autoplay` turns the page every 30 seconds.
+- `?autoplay=45` sets the interval in seconds (5 to 3600).
+
+After the last page it starts again at the first page and reloads the posts, so new posts appear without a manual reload.
+Auto-advance pauses while the menu drawer is open, for 60 seconds after someone touches, swipes, scrolls or types, and while the browser tab is hidden.
+It can also be switched on or off with the `Auto-advance` toggle in the flip view menu, which the browser remembers.
+
+For example, to show the `#Ecosystem` tag on a kiosk PC:
+
+```shell
+chromium --kiosk "https://rss.example.com/t/Ecosystem?autoplay=30"
 ```
 
 ## Usage Behind a Reverse Proxy

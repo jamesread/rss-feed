@@ -1,6 +1,6 @@
 <template>
     <div class="md:flex h-full min-h-0">
-        <FlipView v-if="postFormat === 'flip'" :posts="shownPosts" :has-more="hasMore" :page="page" :feeds="feeds" :tag="tag" :feed="feed" :search="search" :since="since" :starred="starred"
+        <FlipView v-if="postFormat === 'flip'" :posts="shownPosts" :has-more="hasMore" :page="page" :feeds="feeds" :tag="tag" :feed="feed" :search="search" :since="since" :starred="starred" :autoplay-seconds="autoplaySeconds"
                   :empty-text="starred ? 'No starred posts' : 'No posts'" />
         <div v-show="postFormat !== 'flip'" class="md:w-1/3 xl:w-1/4 md:flex md:justify-end md:border-r dark:border-black px-6 bg-gray-50 dark:bg-gray-800 md:px-12 md:overflow-auto py-3">
             <div class="md:hidden mb-2">
@@ -120,6 +120,7 @@
     import FlipView from "../Parts/FlipView.vue";
     import {SINCE_OPTIONS, listingData, sinceLabel} from "../listing";
     import {starred as starredStore} from "../starred";
+    import {parseAutoplayParam} from "../flip/autoplay";
 
     export default {
         components: {FlipView, FormatSelector, Tag, Feed, Post},
@@ -175,6 +176,7 @@
         data() {
             return {
                 searchInputVal: this.search,
+                autoplaySeconds: parseAutoplayParam(window.location.search),
                 sinceOptions: SINCE_OPTIONS,
                 postFormat: 'card',
                 mobileShowOptions: false,
@@ -200,6 +202,10 @@
             const format = window.localStorage.getItem('post-format');
             if (format) {
                 this.postFormat = format;
+            }
+            // A kiosk URL with ?autoplay shows the flip view without changing the saved layout
+            if (this.autoplaySeconds !== null) {
+                this.postFormat = 'flip';
             }
         }
     }
