@@ -34,7 +34,7 @@
                     class="w-full object-cover saturate-80 text-white/50
                      flex items-center p-5 opacity-60
                      text-5xl font-bold h-32 md:h-48 lg:h-64">
-                  {{ post.title }}
+                  <template v-if="!showFavicon">{{ post.title }}</template>
                 </div>
                 <div v-if="showFavicon" class="absolute inset-0 flex items-center justify-center">
                   <img :src="`storage/${post.feed.favicon}`"
