@@ -412,4 +412,51 @@ END);
         $this->assertEquals('Plain title - Example', $post->title);
         $this->assertEquals('', $post->source);
     }
+
+    public function test_html_tags_are_removed_from_atom_title(): void
+    {
+        // As sent by https://www.theregister.com/headlines.atom
+        $posts = (new RssParser())->rssDataToPosts(<<<END
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <entry>
+    <title>Nvidia &lt;span data-lab-text_size_desktop=&quot;42&quot; class=&quot;t42&quot;&gt;picks OpenShell to &lt;/span&gt;tame AI gents</title>
+    <link href="https://example.com/a"/>
+    <updated>2026-10-21T17:00:00.000Z</updated>
+    <id>https://example.com/a</id>
+  </entry>
+</feed>
+END);
+
+        $this->assertCount(1, $posts);
+        $this->assertEquals('Nvidia picks OpenShell to tame AI gents', $posts[0]->title);
+    }
+
+    public function test_escaped_html_tags_are_removed_from_rss_title(): void
+    {
+        $post = $this->parseItem("<title>Breaking: &lt;b&gt;Big&lt;/b&gt;\n   news &lt;br/&gt;today</title>");
+
+        $this->assertEquals('Breaking: Big news today', $post->title);
+    }
+
+    public function test_cdata_html_tags_are_removed_from_rss_title(): void
+    {
+        $post = $this->parseItem('<title><![CDATA[<em>Rust</em> 2.0 released]]></title>');
+
+        $this->assertEquals('Rust 2.0 released', $post->title);
+    }
+
+    public function test_entities_in_title_are_decoded_without_tags(): void
+    {
+        $post = $this->parseItem('<title>AT&amp;amp;T &amp;#8220;quoted&amp;#8221; &amp; 5 &lt; 6</title>');
+
+        $this->assertEquals('AT&T “quoted” & 5 < 6', $post->title);
+    }
+
+    public function test_source_suffix_is_removed_after_tags_are_stripped(): void
+    {
+        $post = $this->parseItem('<title>&lt;i&gt;Markets&lt;/i&gt; rally - Reuters</title><source url="https://www.reuters.com">Reuters</source>');
+
+        $this->assertEquals('Markets rally', $post->title);
+    }
 }

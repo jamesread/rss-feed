@@ -70,7 +70,7 @@ class RssParser
         $source = mb_substr(trim(html_entity_decode(strval($rssItem->source ?? ''))), 0, 250);
 
         $item = [
-            'title' => $this->removeSourceSuffix(mb_substr(strval($rssItem->title ?? ''), 0, 250), $source),
+            'title' => $this->removeSourceSuffix($this->formatTitle(strval($rssItem->title ?? '')), $source),
             'source' => $source,
             'description' => $this->formatDescription(strval($rssItem->description) ?: ''),
             'url' => strval($rssItem->link ?? ''),
@@ -91,13 +91,24 @@ class RssParser
     protected function removeSourceSuffix(string $title, string $source): string
     {
         $suffix = " - {$source}";
-        $decodedTitle = trim(html_entity_decode($title));
 
-        if ($source && str_ends_with($decodedTitle, $suffix) && mb_strlen($decodedTitle) > mb_strlen($suffix)) {
-            return trim(mb_substr($decodedTitle, 0, -mb_strlen($suffix)));
+        if ($source && str_ends_with($title, $suffix) && mb_strlen($title) > mb_strlen($suffix)) {
+            return trim(mb_substr($title, 0, -mb_strlen($suffix)));
         }
 
         return $title;
+    }
+
+    /**
+     * Titles are shown as plain text, but some feeds put (escaped) HTML in them,
+     * so decode entities, then drop any tags and collapse the leftover whitespace.
+     */
+    protected function formatTitle(string $title): string
+    {
+        $plain = strip_tags(html_entity_decode($title));
+        $plain = trim(preg_replace('/\s+/', ' ', $plain));
+
+        return mb_substr($plain, 0, 250);
     }
 
     protected function getPublishedDateFromItem(SimpleXMLElement $item): ?DateTimeImmutable
@@ -150,7 +161,7 @@ class RssParser
         }
 
         return [
-            'title' => html_entity_decode(mb_substr(strval($item->title ?? ''), 0, 250)),
+            'title' => $this->formatTitle(strval($item->title ?? '')),
             'source' => '',
             'description' => $this->formatDescription(strval($item->summary) ?: strval($item->content) ?: ''),
             'url' => $item->link ? strval($item->link->attributes()['href']) : '',
