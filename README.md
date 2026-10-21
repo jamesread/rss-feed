@@ -11,6 +11,7 @@ This project is a fork of [danb/rss](https://codeberg.org/danb/rss). On top of t
 
 - **Menu selector pinned to the top right corner.** The menu stays in place at the top right instead of moving with the page.
 - **Configurable theme.** Set the UI theme with the `APP_THEME` environment variable. It accepts `system`, `dark` or `light` (see [App Configuration](#app-configuration)).
+- **Configurable dark background.** Set the page background of the dark theme to any hex colour with `APP_DARK_BACKGROUND`, for example pure black for an OLED screen (see [App Configuration](#app-configuration)).
 - **Flip view.** An extra layout in the style of a digital newspaper that you can flip through page by page.
 - **Flip view auto-advance.** Flip view can turn its pages on its own, for a wall screen or kiosk PC (see [Kiosk / Information Display](#kiosk--information-display)).
 - **Feed favicons.** Each feed's website icon is shown on posts without a thumbnail in flip and grid view. The site can be set per feed with `site=` (see [Feed Configuration](#feed-configuration)).
@@ -222,6 +223,18 @@ APP_PRUNE_POSTS_AFTER_DAYS=30
 # When using docker, restart the container after changing this.
 # Defaults to system.
 APP_THEME=system
+
+# The page background colour of the dark theme, as a hex colour.
+# Accepts "#rgb" or "#rrggbb"; the leading "#" is optional.
+# Put the value in quotes in a .env file, since an unquoted "#" starts a
+# comment there and the value would be ignored. When passing it to the
+# container (eg. -e APP_DARK_BACKGROUND=#000000) no quotes are needed.
+# Only the main page background is changed. The sidebar, posts and the
+# flip view keep their colours, and the light theme is not affected.
+# Invalid values are ignored.
+# When using docker, restart the container after changing this.
+# Defaults to the current dark grey (about #101828).
+APP_DARK_BACKGROUND="#101828"
 ```
 
 The following environment can be used to configure our default docker container image:

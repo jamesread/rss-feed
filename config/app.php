@@ -84,6 +84,19 @@ return [
 
     'theme' => env('APP_THEME', 'system'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Dark Theme Background
+    |--------------------------------------------------------------------------
+    |
+    | The page background colour used by the dark theme, as a hex colour
+    | ("#rgb" or "#rrggbb", the leading "#" is optional). When unset or
+    | invalid, the default dark background (Tailwind gray-900) is used.
+    |
+    */
+
+    'dark_background' => env('APP_DARK_BACKGROUND'),
+
 
     /*
     |--------------------------------------------------------------------------
