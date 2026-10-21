@@ -1,11 +1,12 @@
-import {describe, expect, test} from 'vitest';
-import {createStarredStore} from '../../resources/js/starred.js';
+import {afterEach, describe, expect, test, vi} from 'vitest';
+import {createStarredStore, snapshotPost} from '../../resources/js/starred.js';
 
 function memoryStorage() {
     const data = {};
     return {
         getItem: key => (key in data ? data[key] : null),
         setItem: (key, value) => { data[key] = String(value); },
+        removeItem: key => { delete data[key]; },
         data,
     };
 }
@@ -23,64 +24,162 @@ function makePost(n) {
     };
 }
 
+function recordingRequest(result = true) {
+    const calls = [];
+    const request = async (method, path, body) => {
+        calls.push({method, path, body});
+        if (result instanceof Error) {
+            throw result;
+        }
+        return result;
+    };
+    return {request, calls};
+}
+
 describe('starred store', () => {
-    test('toggle stars and unstars a post', () => {
-        const store = createStarredStore(memoryStorage(), () => 1);
-        expect(store.toggle(makePost(1))).toBe(true);
+    test('star sends a snapshot and unstar sends the URL', async () => {
+        const {request, calls} = recordingRequest();
+        const store = createStarredStore({request});
+
+        expect(await store.toggle(makePost(1))).toBe(true);
         expect(store.isStarred('https://example.com/1')).toBe(true);
         expect(store.count()).toBe(1);
+        expect(calls[0]).toMatchObject({method: 'POST', path: 'starred', body: {url: 'https://example.com/1', title: 'Post 1'}});
 
-        expect(store.toggle(makePost(1))).toBe(false);
+        expect(await store.toggle(makePost(1))).toBe(false);
         expect(store.isStarred('https://example.com/1')).toBe(false);
+        expect(store.count()).toBe(0);
+        expect(calls[1]).toEqual({method: 'DELETE', path: 'starred', body: {url: 'https://example.com/1'}});
+    });
+
+    test('updates the star before the server answers', () => {
+        const store = createStarredStore({request: () => new Promise(() => {})});
+        store.toggle(makePost(1));
+        expect(store.isStarred('https://example.com/1')).toBe(true);
+    });
+
+    test('rolls back when the server rejects the change', async () => {
+        const {request} = recordingRequest(false);
+        const store = createStarredStore({request});
+        store.load(['https://example.com/2']);
+
+        expect(await store.toggle(makePost(1))).toBe(false);
+        expect(store.isStarred('https://example.com/1')).toBe(false);
+
+        expect(await store.toggle(makePost(2))).toBe(true);
+        expect(store.isStarred('https://example.com/2')).toBe(true);
+    });
+
+    test('rolls back when the request throws', async () => {
+        const store = createStarredStore({request: recordingRequest(new Error('offline')).request});
+        expect(await store.toggle(makePost(1))).toBe(false);
+        expect(store.isStarred('https://example.com/1')).toBe(false);
+    });
+
+    test('load replaces the starred URLs', () => {
+        const store = createStarredStore({request: recordingRequest().request});
+        store.load(['https://example.com/1', 'https://example.com/2']);
+        expect(store.count()).toBe(2);
+        store.load(['https://example.com/3']);
+        expect(store.isStarred('https://example.com/1')).toBe(false);
+        expect(store.count()).toBe(1);
+        store.load(undefined);
         expect(store.count()).toBe(0);
     });
 
-    test('lists most recently starred first', () => {
-        let time = 100;
-        const store = createStarredStore(memoryStorage(), () => time++);
-        store.toggle(makePost(1));
-        store.toggle(makePost(2));
-        store.toggle(makePost(3));
-        expect(store.list().map(post => post.title)).toEqual(['Post 3', 'Post 2', 'Post 1']);
-    });
-
-    test('keeps a snapshot that renders after reload, without the server post', () => {
-        const storage = memoryStorage();
-        createStarredStore(storage, () => 5).toggle(makePost(7));
-
-        const [post] = createStarredStore(storage).list();
-        expect(post).toMatchObject({
+    test('snapshot keeps what is needed to show the post later', () => {
+        const snapshot = snapshotPost(makePost(7));
+        expect(snapshot).toMatchObject({
             url: 'https://example.com/7',
             title: 'Post 7',
             published_at: 1007,
-            starred_at: 5,
+            thumbnail: 'thumbs/1/7.jpeg',
             source: 'Example News',
-            feed: {name: 'Feed A', color: '#f00', url: 'https://example.com/feed.xml', tags: ['#a']},
+            feed: {name: 'Feed A', color: '#f00', url: 'https://example.com/feed.xml', tags: ['#a'], favicon: 'favicons/1.png'},
             feeds: [{name: 'Feed A', color: '#f00', url: 'https://example.com/feed.xml'}],
         });
-        expect(post.description).toHaveLength(500);
+        expect(snapshot.description).toHaveLength(500);
+    });
+});
+
+describe('import of browser stars', () => {
+    const legacy = [{...snapshotPost(makePost(1)), starred_at: 5}, {...snapshotPost(makePost(2)), starred_at: 6}];
+
+    test('sends local stars once and removes them after success', async () => {
+        const storage = memoryStorage();
+        storage.setItem('starred-posts', JSON.stringify(legacy));
+        const {request, calls} = recordingRequest();
+        const store = createStarredStore({request, storage});
+
+        expect(await store.importLocal()).toBe(true);
+        expect(calls).toEqual([{method: 'POST', path: 'starred/import', body: {posts: legacy}}]);
+        expect(storage.getItem('starred-posts')).toBeNull();
+        expect(store.count()).toBe(2);
+        expect(store.isStarred('https://example.com/2')).toBe(true);
+
+        expect(await store.importLocal()).toBe(false);
+        expect(calls).toHaveLength(1);
     });
 
-    test('works without errors when storage throws', () => {
+    test('keeps local stars when the import fails', async () => {
+        const storage = memoryStorage();
+        storage.setItem('starred-posts', JSON.stringify(legacy));
+        const store = createStarredStore({request: recordingRequest(false).request, storage});
+
+        expect(await store.importLocal()).toBe(false);
+        expect(storage.getItem('starred-posts')).toBe(JSON.stringify(legacy));
+        expect(store.count()).toBe(0);
+    });
+
+    test.each([
+        ['nothing stored', null],
+        ['an empty list', '[]'],
+        ['corrupt data', '{not json'],
+        ['entries without URL', '[{"title": "x"}, null]'],
+    ])('sends nothing for %s', async (name, value) => {
+        const storage = memoryStorage();
+        if (value !== null) {
+            storage.setItem('starred-posts', value);
+        }
+        const {request, calls} = recordingRequest();
+
+        expect(await createStarredStore({request, storage}).importLocal()).toBe(false);
+        expect(calls).toHaveLength(0);
+    });
+
+    test('works without errors when storage throws or is missing', async () => {
         const throwing = {
             getItem() { throw new Error('SecurityError'); },
-            setItem() { throw new Error('SecurityError'); },
+            removeItem() { throw new Error('SecurityError'); },
         };
-        const store = createStarredStore(throwing);
-        expect(store.count()).toBe(0);
-        expect(() => store.toggle(makePost(1))).not.toThrow();
+        const {request, calls} = recordingRequest();
+
+        expect(await createStarredStore({request, storage: throwing}).importLocal()).toBe(false);
+        expect(await createStarredStore({request, storage: null}).importLocal()).toBe(false);
+        expect(calls).toHaveLength(0);
+    });
+});
+
+describe('default request', () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    test('sends the decoded XSRF-TOKEN cookie and reports failures', async () => {
+        vi.stubGlobal('document', {cookie: 'other=1; XSRF-TOKEN=abc%3D%3D; last=2'});
+        const fetch = vi.fn(async () => ({ok: true}));
+        vi.stubGlobal('fetch', fetch);
+        const store = createStarredStore();
+
+        expect(await store.toggle(makePost(1))).toBe(true);
+        const [path, options] = fetch.mock.calls[0];
+        expect(path).toBe('starred');
+        expect(options.method).toBe('POST');
+        expect(options.headers['X-XSRF-TOKEN']).toBe('abc==');
+        expect(JSON.parse(options.body).url).toBe('https://example.com/1');
+
+        fetch.mockImplementation(async () => { throw new TypeError('Failed to fetch'); });
+        expect(await store.toggle(makePost(1))).toBe(true);
         expect(store.isStarred('https://example.com/1')).toBe(true);
-    });
-
-    test('works without any storage', () => {
-        const store = createStarredStore(null);
-        store.toggle(makePost(1));
-        expect(store.count()).toBe(1);
-    });
-
-    test('ignores corrupt stored data', () => {
-        const storage = memoryStorage();
-        storage.setItem('starred-posts', '{not json');
-        expect(createStarredStore(storage).count()).toBe(0);
     });
 });

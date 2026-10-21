@@ -1,14 +1,15 @@
 import {reactive} from 'vue';
+import {router} from '@inertiajs/vue3';
 
-const STORAGE_KEY = 'starred-posts';
+// Where stars were kept before they moved to the server; read once to import them
+const LEGACY_STORAGE_KEY = 'starred-posts';
 const MAX_DESCRIPTION_LENGTH = 500;
 
 /**
  * Copy the parts of a post needed to show it later, even after it is pruned on the server.
  * @param {Object} post
- * @param {Number} starredAt
  */
-export function snapshotPost(post, starredAt) {
+export function snapshotPost(post) {
     const feed = post.feed || {};
     return {
         url: post.url,
@@ -17,64 +18,121 @@ export function snapshotPost(post, starredAt) {
         published_at: post.published_at,
         thumbnail: post.thumbnail || '',
         source: post.source || '',
-        starred_at: starredAt,
         feed: {name: feed.name, color: feed.color, url: feed.url, tags: feed.tags || [], favicon: feed.favicon || ''},
         feeds: (post.feeds || []).map(({name, color, url}) => ({name, color, url})),
     };
 }
 
-/**
- * Create a starred-posts store on top of the given storage (window.localStorage in the app).
- * Storage may be missing or throw; the store then works for the current page view only.
- * @param {Storage|null} storage
- * @param {() => Number} now
- */
-export function createStarredStore(storage, now = () => Math.floor(Date.now() / 1000)) {
-    const state = reactive({posts: read()});
+function readCookie(name) {
+    const match = document.cookie.split('; ').find(cookie => cookie.startsWith(name + '='));
+    return match ? decodeURIComponent(match.slice(name.length + 1)) : '';
+}
 
-    function read() {
+/**
+ * Send a JSON request to the app. Resolves to true for a 2xx response, false otherwise.
+ * Paths are relative so they follow the page's <base> when the app runs on a sub-path.
+ * @param {String} method
+ * @param {String} path
+ * @param {Object} body
+ */
+async function sendRequest(method, path, body) {
+    try {
+        const response = await fetch(path, {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-XSRF-TOKEN': readCookie('XSRF-TOKEN'),
+            },
+            body: JSON.stringify(body),
+        });
+        return response.ok;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Create a starred-posts store. Stars live on the server; the store holds the starred URLs
+ * for the current page and sends star and unstar requests.
+ * @param {Object} options
+ * @param {Function} options.request (method, path, body) => Promise<Boolean>
+ * @param {Storage|null} options.storage Browser storage holding stars from before they moved to the server
+ */
+export function createStarredStore({request = sendRequest, storage = null} = {}) {
+    const state = reactive({urls: []});
+
+    async function send(method, path, body) {
         try {
-            const posts = JSON.parse(storage?.getItem(STORAGE_KEY) || '[]');
-            return Array.isArray(posts) ? posts.filter(post => post && post.url) : [];
+            return await request(method, path, body);
         } catch {
-            return [];
+            return false;
         }
     }
 
-    function write() {
-        try {
-            storage?.setItem(STORAGE_KEY, JSON.stringify(state.posts));
-        } catch {
-            // Storage unavailable or full: stars only last for this page view
-        }
+    function setStarred(url, isStarred) {
+        const urls = state.urls.filter(starredUrl => starredUrl !== url);
+        state.urls = isStarred ? [...urls, url] : urls;
     }
 
     return {
         state,
-        /** Starred posts, most recently starred first. */
-        list() {
-            return [...state.posts].sort((a, b) => b.starred_at - a.starred_at);
+        /** Replace the starred URLs with the list the server sent with the page. */
+        load(urls) {
+            state.urls = Array.isArray(urls) ? [...urls] : [];
         },
         count() {
-            return state.posts.length;
+            return state.urls.length;
         },
         isStarred(url) {
-            return state.posts.some(post => post.url === url);
+            return state.urls.includes(url);
         },
-        /** Star the post if it is not starred, otherwise unstar it. Returns the new starred state. */
-        toggle(post) {
-            const index = state.posts.findIndex(starred => starred.url === post.url);
-            if (index === -1) {
-                state.posts.push(snapshotPost(post, now()));
-            } else {
-                state.posts.splice(index, 1);
+        /**
+         * Star the post if it is not starred, otherwise unstar it. The button changes at once
+         * and goes back if the server does not accept the change. Resolves to the new starred state.
+         */
+        async toggle(post) {
+            const wasStarred = state.urls.includes(post.url);
+            setStarred(post.url, !wasStarred);
+
+            const ok = wasStarred
+                ? await send('DELETE', 'starred', {url: post.url})
+                : await send('POST', 'starred', snapshotPost(post));
+
+            if (!ok) {
+                setStarred(post.url, wasStarred);
+                return wasStarred;
             }
-            write();
-            return index === -1;
+            return !wasStarred;
         },
-        /** Reload from storage, e.g. after another tab changed it. */
-        reload() {
-            state.posts = read();
+        /**
+         * Send stars kept in this browser by earlier versions to the server, once.
+         * The local copy is removed only after the server accepted them.
+         * Resolves to true when stars were imported.
+         */
+        async importLocal() {
+            let posts;
+            try {
+                posts = JSON.parse(storage?.getItem(LEGACY_STORAGE_KEY) || '[]');
+            } catch {
+                return false;
+            }
+            posts = Array.isArray(posts) ? posts.filter(post => post && post.url) : [];
+            if (posts.length === 0) {
+                return false;
+            }
+
+            if (!await send('POST', 'starred/import', {posts})) {
+                return false;
+            }
+
+            try {
+                storage.removeItem(LEGACY_STORAGE_KEY);
+            } catch {
+                // Storage gone in the meantime: the server ignores stars it already has
+            }
+            state.urls = [...new Set([...state.urls, ...posts.map(post => post.url)])];
+            return true;
         },
     };
 }
@@ -87,12 +145,13 @@ function browserStorage() {
     }
 }
 
-export const starred = createStarredStore(typeof window === 'undefined' ? null : browserStorage());
+export const starred = createStarredStore({storage: typeof window === 'undefined' ? null : browserStorage()});
 
 if (typeof window !== 'undefined') {
-    window.addEventListener('storage', event => {
-        if (event.key === STORAGE_KEY) {
-            starred.reload();
+    starred.importLocal().then(imported => {
+        // The starred view lists posts from the server, so fetch it again to show the imported ones
+        if (imported && window.location.pathname.endsWith('/starred')) {
+            router.reload();
         }
     });
 }

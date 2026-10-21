@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Config\ConfiguredFeedList;
 use App\Config\ConfiguredFeedProvider;
+use App\Models\StarredPost;
 use App\Rss\PostProvider;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -55,13 +56,13 @@ class PostViewController extends Controller
     }
 
     /**
-     * Starred posts are kept in the browser, so the page only gets the feeds for its sidebar.
+     * Starred posts are stored copies, so they are listed even when the post or its feed is gone.
      */
     public function starred()
     {
         return Inertia::render('Posts', [
             'feeds' => $this->feedProvider->getAll(),
-            'posts' => [],
+            'posts' => StarredPost::query()->orderByDesc('starred_at')->orderByDesc('id')->get(),
             'hasMore' => false,
             'page' => 1,
             'search' => '',
@@ -69,7 +70,16 @@ class PostViewController extends Controller
             'tag' => '',
             'feed' => '',
             'starred' => true,
+            'starredUrls' => $this->starredUrls(),
         ]);
+    }
+
+    /**
+     * @return string[]
+     */
+    protected function starredUrls(): array
+    {
+        return StarredPost::query()->pluck('url')->all();
     }
 
     protected function renderPostsView(Request $request, ConfiguredFeedList $displayFeeds, ConfiguredFeedList $postFeeds, array $additionalData = [])
@@ -109,6 +119,7 @@ class PostViewController extends Controller
             'since' => $since,
             'tag' => '',
             'feed' => '',
+            'starredUrls' => $this->starredUrls(),
         ];
 
         return Inertia::render('Posts', array_merge($coreData, $additionalData));

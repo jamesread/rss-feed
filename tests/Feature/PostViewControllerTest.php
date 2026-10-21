@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Feed;
 use App\Models\Post;
+use App\Models\StarredPost;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -178,7 +179,7 @@ final class PostViewControllerTest extends TestCase
         $this->get('/t/News?page=2')->assertInertia(fn (Assert $page) => $page->where('hasMore', false));
     }
 
-    public function test_starred_view_renders_without_server_posts(): void
+    public function test_starred_view_renders_without_starred_posts(): void
     {
         $this->get('/starred')->assertInertia(function (Assert $page) {
             $page->component('Posts');
@@ -186,6 +187,45 @@ final class PostViewControllerTest extends TestCase
             $page->has('posts', 0);
             $page->has('feeds', 3);
             $page->where('hasMore', false);
+            $page->where('starredUrls', []);
         });
+    }
+
+    public function test_starred_view_lists_stored_posts_newest_star_first(): void
+    {
+        $this->starPost('https://example.com/old', 100);
+        $this->starPost('https://example.com/new', 300);
+        // Not a post in the database, as if it was pruned
+        $this->starPost('https://example.com/pruned', 200);
+
+        $this->get('/starred')->assertInertia(function (Assert $page) {
+            $page->has('posts', 3);
+            $page->where('posts.0.url', 'https://example.com/new');
+            $page->where('posts.1.url', 'https://example.com/pruned');
+            $page->where('posts.2.url', 'https://example.com/old');
+            $page->where('posts.0.feed.name', 'Feed A');
+            $page->has('starredUrls', 3);
+        });
+    }
+
+    public function test_posts_views_pass_starred_urls(): void
+    {
+        $this->starPost('https://example.com/a', 100);
+
+        $this->get('/')->assertInertia(fn (Assert $page) => $page->where('starredUrls', ['https://example.com/a']));
+        $this->get('/t/Tech')->assertInertia(fn (Assert $page) => $page->where('starredUrls', ['https://example.com/a']));
+    }
+
+    protected function starPost(string $url, int $starredAt): void
+    {
+        StarredPost::query()->create([
+            'url' => $url,
+            'title' => 'Starred ' . $url,
+            'description' => '',
+            'published_at' => 10,
+            'feed' => ['name' => 'Feed A', 'color' => '#F00', 'url' => 'https://example.com/a.xml', 'tags' => [], 'favicon' => ''],
+            'feeds' => [],
+            'starred_at' => $starredAt,
+        ]);
     }
 }

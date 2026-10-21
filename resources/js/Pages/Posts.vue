@@ -24,7 +24,7 @@
                     <Link href="./" data-flip-keep-drawer class="font-bold text-black dark:text-gray-400">&laquo; Back</Link>
                 </div>
 
-                <!-- Starred posts live in the browser, so search and the time filter don't apply to them -->
+                <!-- The starred view lists all starred posts, so search and the time filter don't apply to it -->
                 <div v-if="!starred" class="mb-8">
                     <h2 class="font-bold mb-2 dark:text-gray-400">Search</h2>
                     <form @submit.prevent="submitSearch">
@@ -148,7 +148,11 @@
             starred: {
                 type: Boolean,
                 default: false,
-            }
+            },
+            starredUrls: {
+                type: Array,
+                default: () => [],
+            },
         },
         computed: {
             tags() {
@@ -167,7 +171,8 @@
                 return window.location.pathname;
             },
             shownPosts() {
-                return this.starred ? starredStore.list() : this.posts;
+                // Hide posts unstarred on this page without waiting for a reload
+                return this.starred ? this.posts.filter(post => starredStore.isStarred(post.url)) : this.posts;
             },
             starredCount() {
                 return starredStore.count();
@@ -181,6 +186,14 @@
                 postFormat: 'card',
                 mobileShowOptions: false,
             }
+        },
+        watch: {
+            starredUrls(urls) {
+                starredStore.load(urls);
+            },
+        },
+        created() {
+            starredStore.load(this.starredUrls);
         },
         methods: {
             listingData,

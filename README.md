@@ -18,7 +18,7 @@ This project is a fork of [danb/rss](https://codeberg.org/danb/rss). On top of t
 - **Failing feed marker.** Feeds whose last fetch failed get a red dot in the feed list, with the reason on hover.
 - **Cleaner aggregator titles.** For Google News and similar feeds, the publisher is removed from the title and shown as "via …" instead.
 - **Duplicate stories collapsed.** The same story from several feeds is shown once, listing all its feeds.
-- **Starred posts.** Posts can be starred and found again under "Starred".
+- **Starred posts.** Posts can be starred and found again under "Starred". Stars are stored on the server, so every device sees the same list (see [Starred Posts](#starred-posts)).
 - **Time filter.** Listings can be limited to the last 24 hours, 7 days or 30 days.
 
 ## Features
@@ -42,7 +42,7 @@ The following features are built into the application:
 - Publisher suffixes removed from Google News titles and shown as "via <publisher>".
 - Time filter (last 24 hours, 7 days or 30 days), combinable with search.
 - Flip view auto-advance for kiosk displays (see [Kiosk / Information Display](#kiosk--information-display)).
-- Starred / read-later posts. Stars are kept in your browser, so they are per device and survive old posts being pruned.
+- Starred / read-later posts, stored on the server and shared by all devices. They survive old posts being pruned.
 - Ready-to-use docker image.
 - Mobile screen compatible.
 - Built-in support to prune old post data.
@@ -257,6 +257,14 @@ SERVER_PORT=80
 # Set to "single" to only log to the file.
 LOG_STACK=single,stderr
 ```
+
+## Starred Posts
+
+Use the star on any post to keep it for later. Starred posts are listed under "Starred" in the sidebar (and in the flip view menu), most recently starred first.
+
+- Stars are stored on the server, in the database within `/app/storage`, together with a copy of the post's title, link, description, feed and thumbnail. They therefore survive old posts and thumbnails being pruned, feeds being removed, and the container being recreated.
+- There is one list for the whole installation. Every device and browser sees the same stars, and since the application has no user system, anyone who can open the site can star and unstar posts. Changes made on another device show up after a page reload.
+- Earlier versions kept stars in each browser. When such a browser opens the application after updating, its stars are added to the shared list once and then removed from the browser.
 
 ## Kiosk / Information Display
 
