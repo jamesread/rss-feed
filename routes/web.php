@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\PostViewController;
+use App\Http\Controllers\StarredFeedController;
 use App\Http\Controllers\StarredPostController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,6 +12,7 @@ Route::get('/starred', [PostViewController::class, 'starred']);
 Route::post('/starred', [StarredPostController::class, 'store']);
 Route::delete('/starred', [StarredPostController::class, 'destroy']);
 Route::post('/starred/import', [StarredPostController::class, 'import']);
+Route::get('/favorites', StarredFeedController::class);
 Route::get('/f/{feed}', [PostViewController::class, 'feed']);
 
 Route::get('/feed', [FeedController::class, 'get']);

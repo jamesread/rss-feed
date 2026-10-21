@@ -208,6 +208,12 @@ final class PostViewControllerTest extends TestCase
         });
     }
 
+    public function test_starred_feed_is_announced_in_the_page_head(): void
+    {
+        $this->get('/starred')
+            ->assertSee('<link rel="alternate" type="application/rss+xml" title="' . config('app.name') . ' – Starred" href="' . url('favorites') . '">', false);
+    }
+
     public function test_posts_views_pass_starred_urls(): void
     {
         $this->starPost('https://example.com/a', 100);

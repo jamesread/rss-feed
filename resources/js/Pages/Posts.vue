@@ -54,6 +54,9 @@
                         </svg>
                         Starred ({{ starredCount }})
                     </Link>
+                    <!-- A plain link, so the browser opens the XML instead of an Inertia visit -->
+                    <a v-if="starred" href="favorites" title="RSS feed of starred posts"
+                       class="ml-3 text-sm font-bold text-gray-600 dark:text-gray-500 hover:text-black dark:hover:text-gray-300">RSS feed</a>
                 </div>
 
                 <div v-if="tags.length > 0" class="mb-8">

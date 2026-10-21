@@ -19,6 +19,7 @@ This project is a fork of [danb/rss](https://codeberg.org/danb/rss). On top of t
 - **Cleaner aggregator titles.** For Google News and similar feeds, the publisher is removed from the title and shown as "via …" instead.
 - **Duplicate stories collapsed.** The same story from several feeds is shown once, listing all its feeds.
 - **Starred posts.** Posts can be starred and found again under "Starred". Stars are stored on the server, so every device sees the same list (see [Starred Posts](#starred-posts)).
+- **Starred posts RSS feed.** The starred posts are published as an RSS feed at `/favorites`, including thumbnails.
 - **Time filter.** Listings can be limited to the last 24 hours, 7 days or 30 days.
 
 ## Features
@@ -43,6 +44,7 @@ The following features are built into the application:
 - Time filter (last 24 hours, 7 days or 30 days), combinable with search.
 - Flip view auto-advance for kiosk displays (see [Kiosk / Information Display](#kiosk--information-display)).
 - Starred / read-later posts, stored on the server and shared by all devices. They survive old posts being pruned.
+- RSS feed of the starred posts at `/favorites` (see [Starred Posts RSS Feed](#starred-posts-rss-feed)).
 - Ready-to-use docker image.
 - Mobile screen compatible.
 - Built-in support to prune old post data.
@@ -265,6 +267,20 @@ Use the star on any post to keep it for later. Starred posts are listed under "S
 - Stars are stored on the server, in the database within `/app/storage`, together with a copy of the post's title, link, description, feed and thumbnail. They therefore survive old posts and thumbnails being pruned, feeds being removed, and the container being recreated.
 - There is one list for the whole installation. Every device and browser sees the same stars, and since the application has no user system, anyone who can open the site can star and unstar posts. Changes made on another device show up after a page reload.
 - Earlier versions kept stars in each browser. When such a browser opens the application after updating, its stars are added to the shared list once and then removed from the browser.
+
+The starred posts are also published as an RSS feed, see [Starred Posts RSS Feed](#starred-posts-rss-feed).
+
+## Starred Posts RSS Feed
+
+The starred posts are available as an RSS 2.0 feed at `/favorites`, for example `https://rss.example.com/favorites`.
+Subscribe to it in another feed reader, a read-later service or an automation to pick up the posts you star.
+The starred view links to it ("RSS feed" next to "Starred"), and every page announces it so browsers and feed readers can find it.
+
+- The feed is built on every request, so a post appears as soon as it is starred and disappears as soon as it is unstarred.
+- Each item contains the post's title, link, description, thumbnail image (as an enclosure and as `media:content`) and the name of its feed.
+- The item date is the time the post was starred, not when it was published, so a starred older article still shows up as new in feed readers.
+- Like the rest of the application, the feed is open to anyone who can reach the site.
+- Feed readers usually keep items they have already fetched, so an unstarred post may stay in a reader even though it is gone from the feed.
 
 ## Kiosk / Information Display
 
