@@ -114,7 +114,7 @@ docker run -d \
     --restart unless-stopped \
     -p 8080:80 \
     -v /home/barry/rss:/app/storage \
-    codeberg.org/danb/rss:latest
+    quay.io/michard/rss-feed:latest
 ```
 
 #### Docker Compose Example
@@ -126,7 +126,7 @@ In the below `docker-compose.yml` example, the application will be accessible at
 version: "2"
 services:
     rss:
-        image: codeberg.org/danb/rss:latest
+        image: quay.io/michard/rss-feed:latest
         container_name: rss
         environment:
             - APP_NAME=RSS
@@ -270,10 +270,10 @@ After the last page it starts again at the first page and reloads the posts, so 
 Auto-advance pauses while the menu drawer is open, for 60 seconds after someone touches, swipes, scrolls or types, and while the browser tab is hidden.
 It can also be switched on or off with the `Auto-advance` toggle in the flip view menu, which the browser remembers.
 
-For example, to show the `#Ecosystem` tag on a kiosk PC:
+For example, to show the `#News` tag on a kiosk PC:
 
 ```shell
-chromium --kiosk "https://rss.example.com/t/Ecosystem?autoplay=30"
+chromium --kiosk "https://rss.example.com/t/News?autoplay=30"
 ```
 
 ## Usage Behind a Reverse Proxy
@@ -305,8 +305,8 @@ You will need git, PHP, composer and NodeJS installed. Installation would genera
 
 ```shell
 # Clone down and enter the project
-git clone https://codeberg.org/danb/rss.git
-cd rss
+git clone https://github.com/smichard/rss-feed.git
+cd rss-feed
 
 # Install PHP dependencies via composer
 # This will check you meet the minimum PHP version and extensions required.
