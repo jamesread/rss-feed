@@ -2,7 +2,7 @@
     <div
         :class="{'py-2': formatCompact}"
         class="rss-post p-4 block border border-transparent hover:border-gray-200 hover:bg-gray-100
-        dark:hover:border-gray-700 dark:hover:bg-gray-800 rounded hover:relative hover:z-20 -my-px">
+        dark:hover:border-dark-raised dark:hover:bg-dark-surface rounded hover:relative hover:z-20 -my-px">
 
         <div class="flex text-sm text-gray-600 dark:text-gray-400 items-center flex-wrap">
             <FeedNames :post="post" class="font-bold text-xs block min-w-0" />

@@ -17,6 +17,37 @@
 }
 
 /*
+  Dark theme palette, used as dark:bg-dark-page, dark:bg-dark-surface etc.
+  By default these are the Tailwind grays the UI always used. When
+  APP_DARK_BACKGROUND is set, <html> carries data-dark-bg and --app-dark-bg,
+  and the other shades are mixed from that colour with the same lightness
+  steps as gray 950/900/800/700/600.
+*/
+@theme inline {
+  --color-dark-page: var(--app-dark-page);
+  --color-dark-surface: var(--app-dark-surface);
+  --color-dark-raised: var(--app-dark-raised);
+  --color-dark-line: var(--app-dark-line);
+  --color-dark-deep: var(--app-dark-deep);
+}
+
+:root {
+  --app-dark-page: var(--color-gray-900);
+  --app-dark-surface: var(--color-gray-800);
+  --app-dark-raised: var(--color-gray-700);
+  --app-dark-line: var(--color-gray-600);
+  --app-dark-deep: var(--color-gray-950);
+}
+
+:root[data-dark-bg] {
+  --app-dark-page: var(--app-dark-bg);
+  --app-dark-surface: color-mix(in oklab, var(--app-dark-bg), white 9%);
+  --app-dark-raised: color-mix(in oklab, var(--app-dark-bg), white 21%);
+  --app-dark-line: color-mix(in oklab, var(--app-dark-bg), white 30%);
+  --app-dark-deep: color-mix(in oklab, var(--app-dark-bg), black 38%);
+}
+
+/*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still
   looks the same as it did with Tailwind CSS v3.

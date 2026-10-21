@@ -13,7 +13,7 @@ final class DarkBackgroundConfigTest extends TestCase
     use RefreshDatabase;
     use GeneratesTestData;
 
-    private const DARK_BG_CLASS = 'dark:bg-[var(--app-dark-bg,var(--color-gray-900))]';
+    private const DARK_BG_CLASS = 'class="h-full dark:bg-dark-page"';
 
     protected function setUp(): void
     {
@@ -54,7 +54,7 @@ final class DarkBackgroundConfigTest extends TestCase
 
         $resp = $this->get('/');
         $resp->assertOk();
-        $resp->assertSee('style="--app-dark-bg: ' . $expected . '"', false);
+        $resp->assertSee('data-dark-bg style="--app-dark-bg: ' . $expected . '"', false);
         $resp->assertSee(self::DARK_BG_CLASS, false);
     }
 
@@ -65,6 +65,7 @@ final class DarkBackgroundConfigTest extends TestCase
 
         $resp = $this->get('/');
         $resp->assertOk();
+        $resp->assertDontSee('data-dark-bg', false);
         $resp->assertDontSee('--app-dark-bg:', false);
         $resp->assertSee(self::DARK_BG_CLASS, false);
     }

@@ -8,7 +8,7 @@
     $darkBackground = preg_match('/^#?([0-9a-f]{3}(?:[0-9a-f]{3})?)$/', $darkBackground, $match) ? '#' . $match[1] : null;
 @endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ $theme }}" class="h-full dark:bg-[var(--app-dark-bg,var(--color-gray-900))]"@if($darkBackground) style="--app-dark-bg: {{ $darkBackground }}"@endif>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ $theme }}" class="h-full dark:bg-dark-page"@if($darkBackground) data-dark-bg style="--app-dark-bg: {{ $darkBackground }}"@endif>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">

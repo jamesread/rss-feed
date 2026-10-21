@@ -1,5 +1,5 @@
 <template>
-    <div class="group relative overflow-hidden bg-gray-200 dark:bg-gray-800">
+    <div class="group relative overflow-hidden bg-gray-200 dark:bg-dark-surface">
         <template v-if="post.thumbnail">
             <img :src="`storage/${post.thumbnail}`"
                  loading="lazy"
@@ -8,7 +8,7 @@
                  class="absolute inset-0 size-full object-cover saturate-50 transition [@media(hover:hover)]:group-hover:brightness-110">
             <div class="absolute inset-0 bg-linear-to-t from-black/85 via-black/40 via-45% to-transparent"></div>
         </template>
-        <div v-else class="absolute inset-0" :class="{'bg-gray-500 dark:bg-gray-700': !post.feed.color}" :style="{backgroundColor: post.feed.color || null}">
+        <div v-else class="absolute inset-0" :class="{'bg-gray-500 dark:bg-dark-raised': !post.feed.color}" :style="{backgroundColor: post.feed.color || null}">
             <div class="absolute inset-0 bg-black/25"></div>
         </div>
 

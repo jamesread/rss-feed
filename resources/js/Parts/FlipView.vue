@@ -1,5 +1,5 @@
 <template>
-    <div class="fixed inset-0 z-30 bg-gray-100 dark:bg-gray-950 text-gray-900 dark:text-gray-200">
+    <div class="fixed inset-0 z-30 bg-gray-100 dark:bg-dark-deep text-gray-900 dark:text-gray-200">
         <!-- Measures the area inside the device safe areas -->
         <div ref="probe" class="absolute inset-0 pointer-events-none invisible" :style="safeAreaPadding"></div>
 
@@ -25,7 +25,7 @@
                               :href="pagePath"
                               :data="pageData(tile.kind === 'next' ? page + 1 : page - 1)"
                               :style="gridArea(tile)"
-                              class="flex items-center justify-center text-2xl font-bold bg-gray-200 hover:bg-gray-300 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-300">
+                              class="flex items-center justify-center text-2xl font-bold bg-gray-200 hover:bg-gray-300 text-gray-700 dark:bg-dark-surface dark:hover:bg-dark-raised dark:text-gray-300">
                             <template v-if="tile.kind === 'next'">Next page &raquo;</template>
                             <template v-else>&laquo; Previous page</template>
                         </Link>
@@ -37,7 +37,7 @@
         <!-- Menu button with current filter -->
         <button type="button"
                 class="absolute z-20 flex items-center gap-2 max-w-[70vw] rounded-full px-3 py-1.5 text-sm font-bold shadow
-                       bg-white/85 text-gray-800 hover:bg-white dark:bg-gray-900/85 dark:text-gray-300 dark:hover:bg-gray-900 backdrop-blur"
+                       bg-white/85 text-gray-800 hover:bg-white dark:bg-dark-page/85 dark:text-gray-300 dark:hover:bg-dark-page backdrop-blur"
                 :style="{top: 'calc(env(safe-area-inset-top) + 0.5rem)', left: 'calc(env(safe-area-inset-left) + 0.5rem)'}"
                 aria-label="Open filters and options"
                 @click="openDrawer">
@@ -52,14 +52,14 @@
         <!-- Previous / next buttons for mouse users -->
         <button v-if="current > 0" type="button" aria-label="Previous page"
                 class="flip-edge-button hidden absolute z-20 top-1/2 -translate-y-1/2 size-11 items-center justify-center rounded-full shadow
-                       bg-white/70 text-gray-800 hover:bg-white dark:bg-gray-900/70 dark:text-gray-300 dark:hover:bg-gray-900 backdrop-blur"
+                       bg-white/70 text-gray-800 hover:bg-white dark:bg-dark-page/70 dark:text-gray-300 dark:hover:bg-dark-page backdrop-blur"
                 :style="{left: 'calc(env(safe-area-inset-left) + 0.5rem)'}"
                 @click="goTo(current - 1)">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z"/></svg>
         </button>
         <button v-if="current < pages.length - 1" type="button" aria-label="Next page"
                 class="flip-edge-button hidden absolute z-20 top-1/2 -translate-y-1/2 size-11 items-center justify-center rounded-full shadow
-                       bg-white/70 text-gray-800 hover:bg-white dark:bg-gray-900/70 dark:text-gray-300 dark:hover:bg-gray-900 backdrop-blur"
+                       bg-white/70 text-gray-800 hover:bg-white dark:bg-dark-page/70 dark:text-gray-300 dark:hover:bg-dark-page backdrop-blur"
                 :style="{right: 'calc(env(safe-area-inset-right) + 0.5rem)'}"
                 @click="goTo(current + 1)">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/></svg>
@@ -68,7 +68,7 @@
         <!-- Page indicator -->
         <div v-if="pages.length > 1"
              class="absolute z-20 left-1/2 -translate-x-1/2 rounded-full px-2.5 py-0.5 text-xs font-bold tabular-nums pointer-events-none
-                    bg-white/80 text-gray-700 dark:bg-gray-900/80 dark:text-gray-400 backdrop-blur"
+                    bg-white/80 text-gray-700 dark:bg-dark-page/80 dark:text-gray-400 backdrop-blur"
              :style="{bottom: 'calc(env(safe-area-inset-bottom) + 0.5rem)'}">
             {{ current + 1 }} / {{ pages.length }}
         </div>
@@ -83,12 +83,12 @@
         <!-- Drawer; the posts page sidebar is teleported into #flip-drawer-body -->
         <div v-show="drawerOpen" class="absolute inset-0 z-40">
             <div class="absolute inset-0 bg-black/40" @click="closeDrawer"></div>
-            <aside class="absolute inset-y-0 left-0 w-[min(22rem,85vw)] overflow-y-auto overscroll-contain shadow-xl bg-gray-50 dark:bg-gray-800"
+            <aside class="absolute inset-y-0 left-0 w-[min(22rem,85vw)] overflow-y-auto overscroll-contain shadow-xl bg-gray-50 dark:bg-dark-surface"
                    role="dialog" aria-modal="true" aria-label="Filters and options"
                    :style="{paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)', paddingLeft: 'env(safe-area-inset-left)'}">
                 <div class="flex justify-end px-3 pt-3">
                     <button ref="closeButton" type="button" aria-label="Close"
-                            class="rounded-sm p-1 text-gray-600 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
+                            class="rounded-sm p-1 text-gray-600 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-dark-raised"
                             @click="closeDrawer">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
                     </button>
@@ -97,8 +97,8 @@
                     <label class="flex items-center justify-between gap-3 font-bold text-gray-900 dark:text-gray-400 cursor-pointer">
                         <span>Auto-advance <span class="font-normal text-sm text-gray-600 dark:text-gray-500">every {{ autoplaySecondsOrDefault }} s</span></span>
                         <input type="checkbox" class="peer sr-only" :checked="autoplayEnabled" @change="setAutoplay($event.target.checked)">
-                        <span class="relative inline-block w-9 h-5 shrink-0 rounded-full bg-gray-300 dark:bg-gray-600 transition peer-checked:bg-gray-800 dark:peer-checked:bg-gray-300 peer-focus-visible:ring-2 peer-focus-visible:ring-gray-500
-                                     after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-white dark:after:bg-gray-900 after:transition peer-checked:after:translate-x-4"
+                        <span class="relative inline-block w-9 h-5 shrink-0 rounded-full bg-gray-300 dark:bg-dark-line transition peer-checked:bg-gray-800 dark:peer-checked:bg-gray-300 peer-focus-visible:ring-2 peer-focus-visible:ring-gray-500
+                                     after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-white dark:after:bg-dark-page after:transition peer-checked:after:translate-x-4"
                               aria-hidden="true"></span>
                     </label>
                 </div>

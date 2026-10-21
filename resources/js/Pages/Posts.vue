@@ -2,10 +2,10 @@
     <div class="md:flex h-full min-h-0">
         <FlipView v-if="postFormat === 'flip'" :posts="shownPosts" :has-more="hasMore" :page="page" :feeds="feeds" :tag="tag" :feed="feed" :search="search" :since="since" :starred="starred" :autoplay-seconds="autoplaySeconds"
                   :empty-text="starred ? 'No starred posts' : 'No posts'" />
-        <div v-show="postFormat !== 'flip'" class="md:w-1/3 xl:w-1/4 md:flex md:justify-end md:border-r dark:border-black px-6 bg-gray-50 dark:bg-gray-800 md:px-12 md:overflow-auto py-3">
+        <div v-show="postFormat !== 'flip'" class="md:w-1/3 xl:w-1/4 md:flex md:justify-end md:border-r dark:border-black px-6 bg-gray-50 dark:bg-dark-surface md:px-12 md:overflow-auto py-3">
             <div class="md:hidden mb-2">
                 <button @click="mobileShowOptions = !mobileShowOptions"
-                        class="border w-full rounded-sm py-1 px-3 hover:bg-gray-100 dark:hover:bg-gray-700 border-2 text-gray-600 dark:text-gray-400 dark:border-gray-600 gap-3 font-bold flex items-center">
+                        class="border w-full rounded-sm py-1 px-3 hover:bg-gray-100 dark:hover:bg-dark-raised border-2 text-gray-600 dark:text-gray-400 dark:border-dark-line gap-3 font-bold flex items-center">
                     <svg :class="{'rotate-90': mobileShowOptions}" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-caret-right-fill" viewBox="0 0 16 16">
                         <path d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/>
                     </svg>
@@ -31,16 +31,16 @@
                         <input type="text"
                                v-model="searchInputVal"
                                placeholder="Post name or description"
-                               class="border border-gray-300 dark:border-black rounded-sm px-2 py-1 w-full bg-white dark:bg-gray-900">
+                               class="border border-gray-300 dark:border-black rounded-sm px-2 py-1 w-full bg-white dark:bg-dark-page">
                         <button type="submit" class="hidden"></button>
                     </form>
-                    <div class="mt-3 flex border rounded-sm border-gray-300 dark:border-gray-600 divide-x divide-gray-300 dark:divide-gray-600 text-sm text-gray-600 dark:text-gray-400">
+                    <div class="mt-3 flex border rounded-sm border-gray-300 dark:border-dark-line divide-x divide-gray-300 dark:divide-dark-line text-sm text-gray-600 dark:text-gray-400">
                         <Link v-for="option in sinceOptions"
                               :href="pagePath"
                               :data="listingData({query: search, since: option.value})"
                               data-flip-keep-drawer
                               class="flex-1 text-center px-2 py-1 hover:text-black dark:hover:text-gray-200"
-                              :class="{'bg-gray-200 text-gray-900 font-bold dark:bg-gray-700 dark:text-gray-200': option.value === since}"
+                              :class="{'bg-gray-200 text-gray-900 font-bold dark:bg-dark-raised dark:text-gray-200': option.value === since}"
                               :aria-current="option.value === since ? 'true' : null">{{ option.label }}</Link>
                     </div>
                 </div>
@@ -67,7 +67,7 @@
                     <h2 class="font-bold dark:text-gray-400">Feeds</h2>
                     <template v-for="feed in feeds">
                         <Feed :feed="feed"/>
-                        <hr class="last:hidden dark:border-gray-700">
+                        <hr class="last:hidden dark:border-dark-raised">
                     </template>
                 </div>
 
@@ -97,7 +97,7 @@
                     <template v-for="post in shownPosts" :key="post.url">
                         <Post :post="post" :format="postFormat" :class="{'flex-1 min-w-sm w-md max-w-lg': postFormat === 'grid'}"/>
                         <div v-if="postFormat !== 'grid'" class="px-4">
-                            <hr class="dark:border-gray-700">
+                            <hr class="dark:border-dark-raised">
                         </div>
                     </template>
                 </div>
