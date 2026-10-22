@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Config\AppSettings;
 use App\Models\Setting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -51,6 +52,18 @@ final class SettingsControllerTest extends TestCase
         ], $overrides);
     }
 
+    protected function ai(array $overrides = []): array
+    {
+        return array_merge([
+            'provider' => 'anthropic',
+            'endpoint' => null,
+            'model' => 'claude-test',
+            'api_key' => 'sk-secret-123',
+            'forget_api_key' => false,
+            'system_prompt' => 'Be brief.',
+        ], $overrides);
+    }
+
     protected function savedSettings(): array
     {
         return Setting::query()->pluck('value', 'key')->all();
@@ -74,6 +87,7 @@ final class SettingsControllerTest extends TestCase
     public function test_sections_are_addressable(): void
     {
         $this->get('/settings/feeds')->assertOk()->assertInertia(fn (Assert $page) => $page->where('section', 'feeds'));
+        $this->get('/settings/ai')->assertOk()->assertInertia(fn (Assert $page) => $page->where('section', 'ai'));
         $this->get('/settings/general')->assertOk()->assertInertia(fn (Assert $page) => $page->where('section', 'general'));
         $this->get('/settings/other')->assertNotFound();
     }
@@ -235,5 +249,83 @@ final class SettingsControllerTest extends TestCase
 
         $this->put('/settings/feeds', ['rows' => [$this->row()]])->assertStatus(419);
         $this->assertEquals('', file_get_contents($this->feedsFile));
+    }
+
+    public function test_ai_section_never_contains_the_api_key(): void
+    {
+        $this->putJson('/settings/ai', $this->ai())->assertNoContent();
+
+        $response = $this->get('/settings/ai')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('ai.provider', 'anthropic')
+            ->where('ai.model', 'claude-test')
+            ->where('ai.has_api_key', true)
+            ->where('ai.system_prompt', 'Be brief.')
+            ->where('ai.default_system_prompt', AppSettings::DEFAULT_AI_SYSTEM_PROMPT)
+            ->where('ai.fixed_endpoints.anthropic', 'https://api.anthropic.com/v1')
+            ->missing('ai.api_key'));
+        $this->assertStringNotContainsString('sk-secret-123', $response->getContent());
+    }
+
+    public function test_ai_section_shows_defaults_when_nothing_is_saved(): void
+    {
+        $this->get('/settings/ai')->assertInertia(fn (Assert $page) => $page
+            ->where('ai.provider', 'openai')
+            ->where('ai.model', 'gpt-5-mini')
+            ->where('ai.has_api_key', false)
+            ->where('ai.system_prompt', AppSettings::DEFAULT_AI_SYSTEM_PROMPT));
+    }
+
+    public function test_save_ai_settings(): void
+    {
+        $this->putJson('/settings/ai', $this->ai([
+            'provider' => 'openai_compatible',
+            'endpoint' => 'http://localhost:11434/v1/',
+        ]))->assertNoContent();
+
+        $this->assertEquals([
+            'ai_provider' => 'openai_compatible',
+            'ai_endpoint' => 'http://localhost:11434/v1',
+            'ai_model' => 'claude-test',
+            'ai_api_key' => 'sk-secret-123',
+            'ai_system_prompt' => 'Be brief.',
+        ], $this->savedSettings());
+    }
+
+    public function test_empty_api_key_keeps_the_saved_key_and_forget_removes_it(): void
+    {
+        $this->putJson('/settings/ai', $this->ai())->assertNoContent();
+
+        $this->putJson('/settings/ai', $this->ai(['api_key' => '', 'model' => 'other']))->assertNoContent();
+        $this->assertEquals('sk-secret-123', $this->savedSettings()['ai_api_key']);
+        $this->assertEquals('other', $this->savedSettings()['ai_model']);
+
+        $this->putJson('/settings/ai', $this->ai(['api_key' => null, 'forget_api_key' => true]))->assertNoContent();
+        $this->assertArrayNotHasKey('ai_api_key', $this->savedSettings());
+    }
+
+    public function test_default_prompt_is_not_saved(): void
+    {
+        $this->putJson('/settings/ai', $this->ai())->assertNoContent();
+        $this->putJson('/settings/ai', $this->ai(['system_prompt' => AppSettings::DEFAULT_AI_SYSTEM_PROMPT]))->assertNoContent();
+
+        $this->assertArrayNotHasKey('ai_system_prompt', $this->savedSettings());
+    }
+
+    public function test_invalid_ai_settings_are_rejected(): void
+    {
+        $this->putJson('/settings/ai', $this->ai(['provider' => 'gemini']))->assertUnprocessable()->assertJsonValidationErrors('provider');
+        $this->putJson('/settings/ai', $this->ai(['model' => '']))->assertUnprocessable()->assertJsonValidationErrors('model');
+        $this->putJson('/settings/ai', $this->ai(['provider' => 'openai_compatible', 'endpoint' => '']))->assertUnprocessable()->assertJsonValidationErrors('endpoint');
+        $this->putJson('/settings/ai', $this->ai(['provider' => 'openai_compatible', 'endpoint' => 'ftp://x']))->assertUnprocessable()->assertJsonValidationErrors('endpoint');
+
+        $this->assertEquals([], $this->savedSettings());
+    }
+
+    public function test_ai_request_without_csrf_token_is_rejected(): void
+    {
+        $this->app['env'] = 'production';
+
+        $this->put('/settings/ai', $this->ai())->assertStatus(419);
+        $this->assertEquals([], $this->savedSettings());
     }
 }

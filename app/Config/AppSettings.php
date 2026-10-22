@@ -17,6 +17,29 @@ class AppSettings
     // The built-in dark page background (Tailwind gray-900), shown in the colour picker when none is set
     public const string DEFAULT_DARK_BACKGROUND = '#101828';
 
+    public const array AI_PROVIDERS = ['openai', 'anthropic', 'openrouter', 'openai_compatible'];
+    public const string DEFAULT_AI_PROVIDER = 'openai';
+    // Providers with a fixed endpoint; "openai_compatible" uses the saved endpoint instead
+    public const array AI_ENDPOINTS = [
+        'openai' => 'https://api.openai.com/v1',
+        'anthropic' => 'https://api.anthropic.com/v1',
+        'openrouter' => 'https://openrouter.ai/api/v1',
+    ];
+    public const array AI_DEFAULT_MODELS = [
+        'openai' => 'gpt-5-mini',
+        'anthropic' => 'claude-sonnet-5-5',
+    ];
+    public const string DEFAULT_AI_SYSTEM_PROMPT = 'You write LinkedIn posts that share an article with a professional audience. '
+        . 'Write in a friendly, personal and natural tone, as a person sharing something they found worth reading. '
+        . 'Use at most three short paragraphs of at most three sentences each. '
+        . 'Use emojis sparingly, at most two in the whole post. '
+        . 'Avoid typical AI phrases and buzzwords such as "delve", "game-changer", "in today\'s fast-paced world", "unlock" or "exciting times". '
+        . 'Do not use em dashes or en dashes; use commas or full stops instead. '
+        . 'Avoid contrast framings such as "this is not about X, it is about Y" or "it\'s not just X, it\'s Y"; say directly what the article offers. '
+        . 'Do not invent facts that are not in the article details. '
+        . 'End with 3 to 4 relevant hashtags on one line, followed by the article link on the last line. '
+        . 'Reply with the post text only.';
+
     public function theme(): string
     {
         return self::normalizeTheme($this->saved('theme'))
@@ -55,6 +78,45 @@ class AppSettings
     public function autoplaySeconds(): ?int
     {
         return $this->autoplayEnabled() ? $this->autoplayInterval() : null;
+    }
+
+    public function aiProvider(): string
+    {
+        $provider = $this->saved('ai_provider');
+        return in_array($provider, self::AI_PROVIDERS, true) ? $provider : self::DEFAULT_AI_PROVIDER;
+    }
+
+    /**
+     * The API base URL: fixed for the known providers, the saved endpoint for "openai_compatible".
+     */
+    public function aiEndpoint(): string
+    {
+        return self::AI_ENDPOINTS[$this->aiProvider()] ?? (string) $this->saved('ai_endpoint');
+    }
+
+    public function savedAiEndpoint(): string
+    {
+        return (string) $this->saved('ai_endpoint');
+    }
+
+    public function aiModel(): string
+    {
+        return $this->saved('ai_model') ?? (self::AI_DEFAULT_MODELS[$this->aiProvider()] ?? '');
+    }
+
+    public function aiApiKey(): string
+    {
+        return (string) $this->saved('ai_api_key');
+    }
+
+    public function hasAiApiKey(): bool
+    {
+        return $this->aiApiKey() !== '';
+    }
+
+    public function aiSystemPrompt(): string
+    {
+        return $this->saved('ai_system_prompt') ?? self::DEFAULT_AI_SYSTEM_PROMPT;
     }
 
     /**

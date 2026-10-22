@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Config\AppSettings;
 use App\Config\ConfiguredFeedList;
 use App\Config\ConfiguredFeedProvider;
+use App\Models\SharedPost;
 use App\Models\StarredPost;
 use App\Rss\PostProvider;
 use Illuminate\Database\Eloquent\Builder;
@@ -73,6 +74,7 @@ class PostViewController extends Controller
             'feed' => '',
             'starred' => true,
             'starredUrls' => $this->starredUrls(),
+            'sharedUrls' => SharedPost::query()->pluck('url')->all(),
             'autoplay' => $this->settings->autoplaySeconds(),
         ]);
     }
@@ -123,6 +125,7 @@ class PostViewController extends Controller
             'tag' => '',
             'feed' => '',
             'starredUrls' => $this->starredUrls(),
+            'sharedUrls' => SharedPost::query()->pluck('url')->all(),
             'autoplay' => $this->settings->autoplaySeconds(),
         ];
 

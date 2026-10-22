@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Config\AppSettings;
 use App\Models\Feed;
 use App\Models\Post;
+use App\Models\SharedPost;
 use App\Models\StarredPost;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
@@ -221,6 +222,23 @@ final class PostViewControllerTest extends TestCase
 
         $this->get('/')->assertInertia(fn (Assert $page) => $page->where('starredUrls', ['https://example.com/a']));
         $this->get('/t/Tech')->assertInertia(fn (Assert $page) => $page->where('starredUrls', ['https://example.com/a']));
+    }
+
+    public function test_posts_views_pass_shared_urls(): void
+    {
+        $this->get('/')->assertInertia(fn (Assert $page) => $page->where('sharedUrls', []));
+
+        SharedPost::query()->create([
+            'url' => 'https://example.com/a',
+            'title' => 'Shared',
+            'description' => '',
+            'feed' => [],
+            'feeds' => [],
+            'shared_at' => 100,
+        ]);
+
+        $this->get('/')->assertInertia(fn (Assert $page) => $page->where('sharedUrls', ['https://example.com/a']));
+        $this->get('/starred')->assertInertia(fn (Assert $page) => $page->where('sharedUrls', ['https://example.com/a']));
     }
 
     protected function starPost(string $url, int $starredAt): void

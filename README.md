@@ -22,6 +22,7 @@ This project is a fork of [danb/rss](https://codeberg.org/danb/rss). On top of t
 - **Starred posts RSS feed.** The starred posts are published as an RSS feed at `/favorites`, including thumbnails.
 - **Time filter.** Listings can be limited to the last 24 hours, 7 days or 30 days.
 - **Settings page.** Theme, dark background, auto-advance and the feed list can be changed in the browser at `/settings`. Changes are kept across container restarts (see [Settings](#settings)).
+- **Share list with AI-written LinkedIn posts.** Starred posts can be added to a share list, where an AI provider drafts a LinkedIn post for each one that you can edit and hand to LinkedIn (see [Share List](#share-list)).
 
 ## Features
 
@@ -47,6 +48,7 @@ The following features are built into the application:
 - Settings page for the theme, dark background, auto-advance and feeds (see [Settings](#settings)).
 - Starred / read-later posts, stored on the server and shared by all devices. They survive old posts being pruned.
 - RSS feed of the starred posts at `/favorites` (see [Starred Posts RSS Feed](#starred-posts-rss-feed)).
+- Share list for starred posts with AI-drafted, editable LinkedIn posts (OpenAI, Anthropic, OpenRouter or any OpenAI compatible API, see [Share List](#share-list)).
 - Ready-to-use docker image.
 - Mobile screen compatible.
 - Built-in support to prune old post data.
@@ -286,13 +288,18 @@ The left pane lists the menus and the right side shows the selected one.
   - Dark background: the page background of the dark theme, or "Use default".
   - Auto-advance: whether flip view turns its pages automatically, and how often (10 s, 15 s, 30 s, 45 s, 1 min or 2 min).
 - **Feeds**: the feed list, see [Editing feeds in the browser](#editing-feeds-in-the-browser).
+- **Social Media**: the AI provider that drafts the posts in the [share list](#share-list).
+  - Provider: `OpenAI`, `Anthropic`, `OpenRouter` or `OpenAI compatible`. The first three use their official API endpoint (`https://api.openai.com/v1`, `https://api.anthropic.com/v1`, `https://openrouter.ai/api/v1`). For `OpenAI compatible`, enter the base URL of any API that speaks the OpenAI chat completions format, for example `http://ollama:11434/v1`. Such an endpoint may run without a key.
+  - Model: the model name sent to the provider, for example `gpt-5-mini` or `claude-sonnet-5-5`.
+  - API key: stored in the database and never shown again or sent to the browser. Leave the field empty to keep the saved key, or tick "Remove saved key".
+  - Instructions: the instructions (system prompt) for every generated post. The default asks for a friendly post of at most three short paragraphs, few emojis, no typical AI wording, no em dashes, no "this is not about X, it is about Y" framings, 3 to 4 hashtags and the article link at the end. "Use default" goes back to it.
 
 How settings behave:
 
 - Settings apply to the whole installation, on every device and browser, from the next page load.
 - General settings are stored in the database and feeds in `feeds.txt`, both within `/app/storage`, so they survive restarting or recreating the container.
 - A theme or dark background saved here takes precedence over `APP_THEME` and `APP_DARK_BACKGROUND`. Until you save the General menu, the environment variables apply as before. Choosing "Use default" for the dark background goes back to `APP_DARK_BACKGROUND`, or the built-in grey when that is unset.
-- Like the rest of the application, the settings page has no login: anyone who can open the site can change settings and feeds.
+- Like the rest of the application, the settings page has no login: anyone who can open the site can change settings and feeds, generate posts with the saved API key, or point it at another endpoint. The key itself cannot be read back through the site, but it is stored unencrypted in the database file within `/app/storage`.
 
 ## Starred Posts
 
@@ -308,13 +315,31 @@ The starred posts are also published as an RSS feed, see [Starred Posts RSS Feed
 
 The starred posts are available as an RSS 2.0 feed at `/favorites`, for example `https://rss.example.com/favorites`.
 Subscribe to it in another feed reader, a read-later service or an automation to pick up the posts you star.
-The starred view links to it ("RSS feed" next to "Starred"), and every page announces it so browsers and feed readers can find it.
+Every page announces it in its HTML head, so browsers and feed readers can find it.
 
 - The feed is built on every request, so a post appears as soon as it is starred and disappears as soon as it is unstarred.
 - Each item contains the post's title, link, description, thumbnail image (as an enclosure and as `media:content`) and the name of its feed.
 - The item date is the time the post was starred, not when it was published, so a starred older article still shows up as new in feed readers.
 - Like the rest of the application, the feed is open to anyone who can reach the site.
 - Feed readers usually keep items they have already fetched, so an unstarred post may stay in a reader even though it is gone from the feed.
+
+## Share List
+
+Starred posts can be collected in a share list, with a LinkedIn post drafted by AI for each one.
+
+1. Set up an AI provider in Settings → Social Media (see [Settings](#settings)).
+2. Click the share button left of the star on a starred post. The button only appears on starred posts. Clicking it again removes the post from the share list, together with its text.
+3. Open the share list with the "Share List" link below "Starred" in the sidebar, or at `/share`. "« Back" returns to the starred view or the home page, depending on where you came from.
+
+In the share list each post is shown as in the list view, with its LinkedIn text next to it:
+
+- The text is generated in the background right after the post is added, and appears on its own once it is ready. It is generated only once per post. If generation fails, for example because no key is saved, the reason is shown with a "Retry" button.
+- Edit the text in the box. Changes are saved automatically and kept for every device.
+- "Share on LinkedIn" copies the text to the clipboard and opens LinkedIn's post composer with the text filled in. If LinkedIn leaves the box empty, paste the text.
+- "Remove" deletes the post and its text from the share list. The post stays starred, and adding it again generates a new text.
+
+The share list keeps its own copy of each post, so unstarring a post does not remove it. Like the stars, it is one list for the whole installation, stored in the database within `/app/storage`.
+Generation runs in the queue worker, which the Docker image starts automatically. In a manual install, `php artisan queue:work` must be running, otherwise posts stay at "Generating…".
 
 ## Kiosk / Information Display
 

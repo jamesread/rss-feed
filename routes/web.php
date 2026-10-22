@@ -3,6 +3,7 @@
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\PostViewController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\SharePostController;
 use App\Http\Controllers\StarredFeedController;
 use App\Http\Controllers\StarredPostController;
 use Illuminate\Support\Facades\Route;
@@ -14,9 +15,15 @@ Route::post('/starred', [StarredPostController::class, 'store']);
 Route::delete('/starred', [StarredPostController::class, 'destroy']);
 Route::post('/starred/import', [StarredPostController::class, 'import']);
 Route::get('/favorites', StarredFeedController::class);
-Route::get('/settings/{section?}', [SettingsController::class, 'show'])->whereIn('section', ['general', 'feeds']);
+Route::get('/share', [SharePostController::class, 'index']);
+Route::post('/share', [SharePostController::class, 'store']);
+Route::put('/share', [SharePostController::class, 'update']);
+Route::delete('/share', [SharePostController::class, 'destroy']);
+Route::post('/share/retry', [SharePostController::class, 'retry']);
+Route::get('/settings/{section?}', [SettingsController::class, 'show'])->whereIn('section', ['general', 'feeds', 'ai']);
 Route::put('/settings', [SettingsController::class, 'update']);
 Route::put('/settings/feeds', [SettingsController::class, 'updateFeeds']);
+Route::put('/settings/ai', [SettingsController::class, 'updateAi']);
 Route::get('/f/{feed}', [PostViewController::class, 'feed']);
 
 Route::get('/feed', [FeedController::class, 'get']);

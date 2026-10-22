@@ -33,6 +33,17 @@ class SettingsController extends Controller
             ],
             'autoplayIntervals' => AppSettings::AUTOPLAY_INTERVALS,
             'rows' => $this->feedRows(),
+            // The saved API key is never sent to the browser, only whether there is one
+            'ai' => [
+                'provider' => $this->settings->aiProvider(),
+                'endpoint' => $this->settings->savedAiEndpoint(),
+                'model' => $this->settings->aiModel(),
+                'has_api_key' => $this->settings->hasAiApiKey(),
+                'system_prompt' => $this->settings->aiSystemPrompt(),
+                'default_system_prompt' => AppSettings::DEFAULT_AI_SYSTEM_PROMPT,
+                'fixed_endpoints' => AppSettings::AI_ENDPOINTS,
+                'default_models' => AppSettings::AI_DEFAULT_MODELS,
+            ],
         ]);
     }
 
@@ -51,6 +62,45 @@ class SettingsController extends Controller
             'autoplay_enabled' => $data['autoplay_enabled'] ? '1' : '0',
             'autoplay_seconds' => (string) $data['autoplay_seconds'],
         ]);
+
+        return response()->noContent();
+    }
+
+    /**
+     * Save the AI settings. An empty key keeps the saved key; a prompt equal to the default is not saved,
+     * so a later change of the default applies.
+     */
+    public function updateAi(Request $request): Response
+    {
+        $data = $request->validate([
+            'provider' => ['required', 'string', Rule::in(AppSettings::AI_PROVIDERS)],
+            'endpoint' => ['nullable', 'required_if:provider,openai_compatible', 'string', 'max:2048', 'regex:/^https?:\/\/\S+$/i'],
+            'model' => ['required', 'string', 'max:200'],
+            'api_key' => ['nullable', 'string', 'max:1000'],
+            'forget_api_key' => ['nullable', 'boolean'],
+            'system_prompt' => ['nullable', 'string', 'max:10000'],
+        ], [
+            'endpoint.required_if' => 'The endpoint is required for an OpenAI compatible provider.',
+            'endpoint.regex' => 'The endpoint must start with http:// or https:// and contain no spaces.',
+        ]);
+
+        $values = [
+            'ai_provider' => $data['provider'],
+            'ai_model' => trim($data['model']),
+            'ai_system_prompt' => $this->customPrompt($data['system_prompt'] ?? null),
+        ];
+        if ($data['provider'] === 'openai_compatible') {
+            $values['ai_endpoint'] = rtrim($data['endpoint'], '/');
+        }
+
+        $apiKey = trim($data['api_key'] ?? '');
+        if ($apiKey !== '') {
+            $values['ai_api_key'] = $apiKey;
+        } elseif ($data['forget_api_key'] ?? false) {
+            $values['ai_api_key'] = null;
+        }
+
+        $this->settings->save($values);
 
         return response()->noContent();
     }
@@ -119,6 +169,12 @@ class SettingsController extends Controller
         }
 
         return response()->noContent();
+    }
+
+    protected function customPrompt(?string $prompt): ?string
+    {
+        $prompt = trim((string) $prompt);
+        return $prompt === '' || $prompt === AppSettings::DEFAULT_AI_SYSTEM_PROMPT ? null : $prompt;
     }
 
     /**

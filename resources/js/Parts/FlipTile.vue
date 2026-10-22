@@ -12,11 +12,13 @@
             <div class="absolute inset-0 bg-black/25"></div>
         </div>
 
-        <StarButton :post="post"
-                    class="absolute z-10 top-2 right-2 size-8 bg-black/40 text-white/90 hover:bg-black/60 backdrop-blur-sm" />
+        <div class="absolute z-10 top-2 right-2 flex gap-1">
+            <ShareButton :post="post" class="size-8 bg-black/40 text-white/90 hover:bg-black/60 backdrop-blur-sm" />
+            <StarButton :post="post" class="size-8 bg-black/40 text-white/90 hover:bg-black/60 backdrop-blur-sm" />
+        </div>
 
         <div class="absolute inset-0 flex flex-col p-3 gap-1 text-white" :class="post.thumbnail ? 'justify-end' : 'justify-between'">
-            <h3 class="font-bold leading-tight pr-8" :class="titleClass">
+            <h3 class="font-bold leading-tight" :class="[titleClass, isStarred ? 'pr-17' : 'pr-8']">
                 <a :href="post.url" target="_blank" :title="post.title"
                    class="after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:ring-4 focus-visible:after:ring-inset focus-visible:after:ring-white/80">{{ post.title }}</a>
             </h3>
@@ -47,6 +49,8 @@
 import {timestampToRelativeTime} from "../util";
 import FeedNames from "./FeedNames.vue";
 import StarButton from "./StarButton.vue";
+import ShareButton from "./ShareButton.vue";
+import {starred} from "../starred";
 
 const thumbnailTitle = {
     xl: 'text-2xl sm:text-3xl line-clamp-4',
@@ -70,7 +74,7 @@ const placeholderTitle = {
 };
 
 export default {
-    components: {FeedNames, StarButton},
+    components: {FeedNames, ShareButton, StarButton},
     props: {
         post: Object,
         size: {
@@ -98,6 +102,10 @@ export default {
         },
         relativeTime() {
             return timestampToRelativeTime(this.post.published_at);
+        },
+        // Starred posts show the share button too, so the title leaves room for both
+        isStarred() {
+            return starred.isStarred(this.post.url);
         },
     },
 }

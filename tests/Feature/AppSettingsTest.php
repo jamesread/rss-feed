@@ -71,6 +71,39 @@ final class AppSettingsTest extends TestCase
         $this->assertEquals(30, $this->settings()->autoplayInterval());
     }
 
+    public function test_ai_settings_default_to_openai_without_key(): void
+    {
+        $this->assertEquals('openai', $this->settings()->aiProvider());
+        $this->assertEquals('https://api.openai.com/v1', $this->settings()->aiEndpoint());
+        $this->assertEquals('gpt-5-mini', $this->settings()->aiModel());
+        $this->assertFalse($this->settings()->hasAiApiKey());
+        $this->assertEquals(AppSettings::DEFAULT_AI_SYSTEM_PROMPT, $this->settings()->aiSystemPrompt());
+    }
+
+    public function test_ai_endpoint_is_fixed_except_for_compatible_providers(): void
+    {
+        $this->settings()->save(['ai_provider' => 'anthropic', 'ai_endpoint' => 'http://localhost:11434/v1']);
+        $this->assertEquals('https://api.anthropic.com/v1', $this->settings()->aiEndpoint());
+        $this->assertEquals('claude-sonnet-5-5', $this->settings()->aiModel());
+
+        $this->settings()->save(['ai_provider' => 'openai_compatible']);
+        $this->assertEquals('http://localhost:11434/v1', $this->settings()->aiEndpoint());
+        $this->assertEquals('', $this->settings()->aiModel());
+
+        $this->settings()->save(['ai_provider' => 'unknown']);
+        $this->assertEquals('openai', $this->settings()->aiProvider());
+    }
+
+    public function test_saved_ai_values_win_over_defaults(): void
+    {
+        $this->settings()->save(['ai_model' => 'gpt-test', 'ai_api_key' => 'sk-1', 'ai_system_prompt' => 'Be brief.']);
+
+        $this->assertEquals('gpt-test', $this->settings()->aiModel());
+        $this->assertEquals('sk-1', $this->settings()->aiApiKey());
+        $this->assertTrue($this->settings()->hasAiApiKey());
+        $this->assertEquals('Be brief.', $this->settings()->aiSystemPrompt());
+    }
+
     public function test_missing_table_falls_back_to_env(): void
     {
         Schema::drop('settings');

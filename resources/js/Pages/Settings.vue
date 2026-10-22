@@ -127,6 +127,72 @@
                     <p v-if="message" class="text-sm" :class="messageIsError ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'" role="status">{{ message }}</p>
                 </div>
             </form>
+            <form v-if="section === 'ai'" class="max-w-2xl space-y-8 pb-8" novalidate @submit.prevent="saveAi">
+                <p class="text-sm text-gray-600 dark:text-gray-500">Used to write a LinkedIn post for each post in the share list.</p>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <label class="block">
+                        <span class="block font-bold mb-1 dark:text-gray-400">Provider</span>
+                        <select v-model="aiForm.provider" @change="providerChanged"
+                                class="w-full border border-gray-300 dark:border-dark-line rounded-sm px-2 py-1 bg-white dark:bg-dark-page">
+                            <option v-for="option in providerOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+                        </select>
+                        <span v-if="errors.provider" class="mt-1 block text-sm text-red-600 dark:text-red-400">{{ errors.provider }}</span>
+                    </label>
+                    <label class="block">
+                        <span class="block font-bold mb-1 dark:text-gray-400">Model *</span>
+                        <input type="text" v-model="aiForm.model" placeholder="Model name" :aria-invalid="errors.model ? 'true' : null"
+                               class="w-full border rounded-sm px-2 py-1 bg-white dark:bg-dark-page"
+                               :class="errors.model ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-dark-line'">
+                        <span v-if="errors.model" class="mt-1 block text-sm text-red-600 dark:text-red-400">{{ errors.model }}</span>
+                    </label>
+                </div>
+
+                <label class="block">
+                    <span class="block font-bold mb-1 dark:text-gray-400">API endpoint{{ fixedEndpoint ? '' : ' *' }}</span>
+                    <input v-if="fixedEndpoint" type="text" :value="fixedEndpoint" readonly
+                           class="w-full border border-gray-300 dark:border-dark-line rounded-sm px-2 py-1 bg-gray-100 text-gray-600 dark:bg-dark-surface dark:text-gray-500">
+                    <input v-else type="url" v-model="aiForm.endpoint" placeholder="http://localhost:11434/v1" :aria-invalid="errors.endpoint ? 'true' : null"
+                           class="w-full border rounded-sm px-2 py-1 bg-white dark:bg-dark-page"
+                           :class="errors.endpoint ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-dark-line'">
+                    <span v-if="!fixedEndpoint" class="mt-1 block text-sm text-gray-600 dark:text-gray-500">Base URL of an API that speaks the OpenAI chat completions format.</span>
+                    <span v-if="errors.endpoint" class="mt-1 block text-sm text-red-600 dark:text-red-400">{{ errors.endpoint }}</span>
+                </label>
+
+                <div>
+                    <label for="ai-api-key" class="block font-bold mb-1 dark:text-gray-400">API key</label>
+                    <input id="ai-api-key" type="password" v-model="aiForm.apiKey" autocomplete="off" :disabled="aiForm.forgetApiKey"
+                           :placeholder="ai.has_api_key ? 'A key is saved. Enter a new one to replace it.' : 'No key saved'"
+                           class="w-full border border-gray-300 dark:border-dark-line rounded-sm px-2 py-1 bg-white dark:bg-dark-page disabled:opacity-50">
+                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-500">
+                        {{ ai.has_api_key ? 'Key saved.' : 'No key saved.' }} The key is stored on the server and never shown again. Settings have no login, so anyone who can open this site can use it.
+                    </p>
+                    <label v-if="ai.has_api_key" class="mt-2 flex items-center gap-2 text-gray-900 dark:text-gray-400 cursor-pointer">
+                        <input type="checkbox" v-model="aiForm.forgetApiKey"> Remove saved key
+                    </label>
+                    <p v-if="errors.api_key" class="mt-1 text-sm text-red-600 dark:text-red-400">{{ errors.api_key }}</p>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label for="ai-system-prompt" class="font-bold dark:text-gray-400">Instructions</label>
+                        <button type="button" class="text-sm font-bold text-gray-600 dark:text-gray-500 hover:text-black dark:hover:text-gray-300 disabled:opacity-50"
+                                :disabled="aiForm.systemPrompt === ai.default_system_prompt"
+                                @click="aiForm.systemPrompt = ai.default_system_prompt">Use default</button>
+                    </div>
+                    <textarea id="ai-system-prompt" v-model="aiForm.systemPrompt" rows="9"
+                              class="w-full border border-gray-300 dark:border-dark-line rounded-sm px-2 py-1 bg-white dark:bg-dark-page text-sm"></textarea>
+                    <p v-if="errors.system_prompt" class="mt-1 text-sm text-red-600 dark:text-red-400">{{ errors.system_prompt }}</p>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <button type="submit" :disabled="saving"
+                            class="rounded-sm border-2 px-4 py-1 font-bold text-gray-700 border-gray-300 hover:bg-gray-100 dark:text-gray-300 dark:border-dark-line dark:hover:bg-dark-raised disabled:opacity-50">
+                        Save
+                    </button>
+                    <p v-if="message" class="text-sm" :class="messageIsError ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'" role="status">{{ message }}</p>
+                </div>
+            </form>
         </div>
     </div>
 </template>
@@ -138,7 +204,27 @@
     const MENU = [
         {section: 'general', label: 'General', href: 'settings'},
         {section: 'feeds', label: 'Feeds', href: 'settings/feeds'},
+        {section: 'ai', label: 'Social Media', href: 'settings/ai'},
     ];
+
+    const PROVIDER_OPTIONS = [
+        {value: 'openai', label: 'OpenAI'},
+        {value: 'anthropic', label: 'Anthropic'},
+        {value: 'openrouter', label: 'OpenRouter'},
+        {value: 'openai_compatible', label: 'OpenAI compatible'},
+    ];
+
+    /** Editable copy of the AI settings. The key field starts empty: the saved key never reaches the browser. */
+    function aiFormFrom(ai) {
+        return {
+            provider: ai.provider,
+            endpoint: ai.endpoint,
+            model: ai.model,
+            apiKey: '',
+            forgetApiKey: false,
+            systemPrompt: ai.system_prompt,
+        };
+    }
 
     /** Expand "#rgb" to "#rrggbb", the only form a colour input accepts. */
     function expandColor(color) {
@@ -171,12 +257,15 @@
             general: Object,
             autoplayIntervals: Array,
             rows: Array,
+            ai: Object,
         },
         data() {
             return {
                 menu: MENU,
                 feedFields: FEED_FIELDS,
                 feedRows: editableRows(this.rows),
+                providerOptions: PROVIDER_OPTIONS,
+                aiForm: aiFormFrom(this.ai),
                 themeOptions: [
                     {value: 'system', label: 'System'},
                     {value: 'light', label: 'Light'},
@@ -199,6 +288,9 @@
             currentLabel() {
                 return MENU.find(item => item.section === this.section)?.label || '';
             },
+            fixedEndpoint() {
+                return this.ai.fixed_endpoints[this.aiForm.provider] || null;
+            },
             pickerColor() {
                 return expandColor(this.form.useDefaultBackground ? this.general.default_dark_background : this.form.darkBackground);
             },
@@ -206,6 +298,9 @@
         watch: {
             rows(rows) {
                 this.feedRows = editableRows(rows);
+            },
+            ai(ai) {
+                this.aiForm = aiFormFrom(ai);
             },
         },
         methods: {
@@ -256,6 +351,29 @@
                 this.showResult(result, 'Saved.');
                 if (result.ok) {
                     router.reload({only: ['rows']});
+                }
+            },
+            providerChanged() {
+                // Swap in the new provider's default model unless a model of its own was typed
+                const defaults = Object.values(this.ai.default_models);
+                if (this.aiForm.model === '' || defaults.includes(this.aiForm.model)) {
+                    this.aiForm.model = this.ai.default_models[this.aiForm.provider] || '';
+                }
+            },
+            async saveAi() {
+                this.saving = true;
+                const result = await requestJson('PUT', 'settings/ai', {
+                    provider: this.aiForm.provider,
+                    endpoint: this.fixedEndpoint ? null : this.aiForm.endpoint,
+                    model: this.aiForm.model,
+                    api_key: this.aiForm.forgetApiKey ? null : this.aiForm.apiKey,
+                    forget_api_key: this.aiForm.forgetApiKey,
+                    system_prompt: this.aiForm.systemPrompt,
+                });
+                this.saving = false;
+                this.showResult(result, 'Saved.');
+                if (result.ok) {
+                    router.reload({only: ['ai']});
                 }
             },
         },

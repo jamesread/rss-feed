@@ -323,7 +323,7 @@ export default {
             // Fetch fresh posts when looping, so a long-running display stays current
             this.autoplayReloading = true;
             router.reload({
-                only: ['posts', 'feeds', 'hasMore', 'starredUrls', 'autoplay'],
+                only: ['posts', 'feeds', 'hasMore', 'starredUrls', 'sharedUrls', 'autoplay'],
                 // On failure keep showing the current posts and retry on the next loop,
                 // without Inertia's error handling taking over the display
                 onNetworkError: () => false,

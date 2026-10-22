@@ -13,7 +13,10 @@
             <div class="flex gap-2 basis-full md:basis-auto">
                 <Tag v-for="tag in post.feed.tags" :tag="tag"/>
             </div>
-            <StarButton :post="post" class="ml-auto size-7 -my-1 text-gray-500 hover:text-gray-900 dark:hover:text-gray-200" />
+            <div v-if="actions" class="ml-auto flex -my-1">
+                <ShareButton :post="post" class="size-7 text-gray-500 hover:text-gray-900 dark:hover:text-gray-200" />
+                <StarButton :post="post" class="size-7 text-gray-500 hover:text-gray-900 dark:hover:text-gray-200" />
+            </div>
         </div>
 
         <div :class="{'flex items-center gap-5': formatList && post.thumbnail}">
@@ -62,16 +65,22 @@
 import Tag from "./Tag.vue";
 import FeedNames from "./FeedNames.vue";
 import StarButton from "./StarButton.vue";
+import ShareButton from "./ShareButton.vue";
 import {timestampToRelativeTime} from "../util";
 
 export default {
-    components: {FeedNames, StarButton, Tag},
+    components: {FeedNames, ShareButton, StarButton, Tag},
     props: {
         post: Object,
         format: {
             type: String,
             default: 'list',
-        }
+        },
+        // Show the share and star buttons
+        actions: {
+            type: Boolean,
+            default: true,
+        },
     },
     data() {
         return {

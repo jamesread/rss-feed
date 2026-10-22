@@ -52,11 +52,17 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" class="text-amber-400">
                             <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
                         </svg>
-                        Starred ({{ starredCount }})
+                        Starred - {{ starredCount }}
                     </Link>
-                    <!-- A plain link, so the browser opens the XML instead of an Inertia visit -->
-                    <a v-if="starred" href="favorites" title="RSS feed of starred posts"
-                       class="ml-3 text-sm font-bold text-gray-600 dark:text-gray-500 hover:text-black dark:hover:text-gray-300">RSS feed</a>
+                    <!-- "from" lets the share view's back link return to the starred view -->
+                    <Link :href="starred ? 'share?from=starred' : 'share'"
+                          class="mt-2 flex w-fit items-center gap-1.5 font-bold text-gray-600 dark:text-gray-500 hover:text-black dark:hover:text-gray-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M3.5 6a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-2a.5.5 0 0 1 0-1h2A1.5 1.5 0 0 1 14 6.5v8a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 14.5v-8A1.5 1.5 0 0 1 3.5 5h2a.5.5 0 0 1 0 1z"/>
+                            <path fill-rule="evenodd" d="M7.646.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 1.707V10.5a.5.5 0 0 1-1 0V1.707L5.354 3.854a.5.5 0 1 1-.708-.708z"/>
+                        </svg>
+                        Share List - {{ sharedCount }}
+                    </Link>
                     <Link href="settings"
                           class="mt-2 flex w-fit items-center gap-1.5 font-bold text-gray-600 dark:text-gray-500 hover:text-black dark:hover:text-gray-300">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
@@ -130,6 +136,7 @@
     import FlipView from "../Parts/FlipView.vue";
     import {SINCE_OPTIONS, listingData, sinceLabel} from "../listing";
     import {starred as starredStore} from "../starred";
+    import {shared as sharedStore} from "../shared";
     import {parseAutoplayParam} from "../flip/autoplay";
 
     export default {
@@ -163,6 +170,10 @@
                 type: Array,
                 default: () => [],
             },
+            sharedUrls: {
+                type: Array,
+                default: () => [],
+            },
             // Auto-advance interval saved in the settings, or null when it is off
             autoplay: {
                 type: Number,
@@ -191,6 +202,9 @@
             },
             starredCount() {
                 return starredStore.count();
+            },
+            sharedCount() {
+                return sharedStore.count();
             }
         },
         data() {
@@ -206,9 +220,13 @@
             starredUrls(urls) {
                 starredStore.load(urls);
             },
+            sharedUrls(urls) {
+                sharedStore.load(urls);
+            },
         },
         created() {
             starredStore.load(this.starredUrls);
+            sharedStore.load(this.sharedUrls);
         },
         methods: {
             listingData,
