@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Config\AppSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -43,5 +44,21 @@ final class ThemeConfigTest extends TestCase
         $resp = $this->get('/');
         $resp->assertOk();
         $resp->assertSee('data-theme="' . $expected . '"', false);
+    }
+
+    public function test_saved_theme_overrides_env(): void
+    {
+        config(['app.theme' => 'dark']);
+        app(AppSettings::class)->save(['theme' => 'light']);
+
+        $this->get('/')->assertOk()->assertSee('data-theme="light"', false);
+    }
+
+    public function test_saved_system_theme_overrides_env(): void
+    {
+        config(['app.theme' => 'dark']);
+        app(AppSettings::class)->save(['theme' => 'system']);
+
+        $this->get('/')->assertOk()->assertSee('data-theme="system"', false);
     }
 }

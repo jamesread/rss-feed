@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Config\AppSettings;
 use App\Config\ConfiguredFeedList;
 use App\Config\ConfiguredFeedProvider;
 use App\Models\StarredPost;
@@ -24,6 +25,7 @@ class PostViewController extends Controller
     public function __construct(
         protected PostProvider $postProvider,
         protected ConfiguredFeedProvider $feedProvider,
+        protected AppSettings $settings,
     ) {
     }
 
@@ -71,6 +73,7 @@ class PostViewController extends Controller
             'feed' => '',
             'starred' => true,
             'starredUrls' => $this->starredUrls(),
+            'autoplay' => $this->settings->autoplaySeconds(),
         ]);
     }
 
@@ -120,6 +123,7 @@ class PostViewController extends Controller
             'tag' => '',
             'feed' => '',
             'starredUrls' => $this->starredUrls(),
+            'autoplay' => $this->settings->autoplaySeconds(),
         ];
 
         return Inertia::render('Posts', array_merge($coreData, $additionalData));

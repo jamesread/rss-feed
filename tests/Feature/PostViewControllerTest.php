@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Config\AppSettings;
 use App\Models\Feed;
 use App\Models\Post;
 use App\Models\StarredPost;
@@ -233,5 +234,20 @@ final class PostViewControllerTest extends TestCase
             'feeds' => [],
             'starred_at' => $starredAt,
         ]);
+    }
+
+    public function test_autoplay_follows_the_saved_setting(): void
+    {
+        foreach (['/', '/starred', '/t/News'] as $path) {
+            $this->get($path)->assertInertia(fn (Assert $page) => $page->where('autoplay', null));
+        }
+
+        app(AppSettings::class)->save(['autoplay_enabled' => '1', 'autoplay_seconds' => '15']);
+        foreach (['/', '/starred', '/t/News'] as $path) {
+            $this->get($path)->assertInertia(fn (Assert $page) => $page->where('autoplay', 15));
+        }
+
+        app(AppSettings::class)->save(['autoplay_enabled' => '0']);
+        $this->get('/')->assertInertia(fn (Assert $page) => $page->where('autoplay', null));
     }
 }

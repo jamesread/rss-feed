@@ -99,7 +99,9 @@ class RssConfig
         $lines = [];
 
         foreach ($this->feeds as $feed => $details) {
-            $line = "{$feed} {$details['name']}";
+            // Names are one word in the file; parseFromString() turns the underscores back into spaces
+            $name = str_replace(' ', '_', $details['name']);
+            $line = "{$feed} {$name}";
             if ($details['color']) {
                 $line .= "[{$details['color']}]";
             }

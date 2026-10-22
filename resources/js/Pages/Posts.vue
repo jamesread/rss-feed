@@ -1,6 +1,6 @@
 <template>
     <div class="md:flex h-full min-h-0">
-        <FlipView v-if="postFormat === 'flip'" :posts="shownPosts" :has-more="hasMore" :page="page" :feeds="feeds" :tag="tag" :feed="feed" :search="search" :since="since" :starred="starred" :autoplay-seconds="autoplaySeconds"
+        <FlipView v-if="postFormat === 'flip'" :posts="shownPosts" :has-more="hasMore" :page="page" :feeds="feeds" :tag="tag" :feed="feed" :search="search" :since="since" :starred="starred" :autoplay-seconds="autoplaySeconds" :saved-autoplay-seconds="autoplay"
                   :empty-text="starred ? 'No starred posts' : 'No posts'" />
         <div v-show="postFormat !== 'flip'" class="md:w-1/3 xl:w-1/4 md:flex md:justify-end md:border-r dark:border-black px-6 bg-gray-50 dark:bg-dark-surface md:px-12 md:overflow-auto py-3">
             <div class="md:hidden mb-2">
@@ -57,6 +57,13 @@
                     <!-- A plain link, so the browser opens the XML instead of an Inertia visit -->
                     <a v-if="starred" href="favorites" title="RSS feed of starred posts"
                        class="ml-3 text-sm font-bold text-gray-600 dark:text-gray-500 hover:text-black dark:hover:text-gray-300">RSS feed</a>
+                    <Link href="settings"
+                          class="mt-2 flex w-fit items-center gap-1.5 font-bold text-gray-600 dark:text-gray-500 hover:text-black dark:hover:text-gray-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                            <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/>
+                        </svg>
+                        Settings
+                    </Link>
                 </div>
 
                 <div v-if="tags.length > 0" class="mb-8">
@@ -155,6 +162,11 @@
             starredUrls: {
                 type: Array,
                 default: () => [],
+            },
+            // Auto-advance interval saved in the settings, or null when it is off
+            autoplay: {
+                type: Number,
+                default: null,
             },
         },
         computed: {

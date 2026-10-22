@@ -93,15 +93,6 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
                     </button>
                 </div>
-                <div class="px-6 mb-8">
-                    <label class="flex items-center justify-between gap-3 font-bold text-gray-900 dark:text-gray-400 cursor-pointer">
-                        <span>Auto-advance <span class="font-normal text-sm text-gray-600 dark:text-gray-500">every {{ autoplaySecondsOrDefault }} s</span></span>
-                        <input type="checkbox" class="peer sr-only" :checked="autoplayEnabled" @change="setAutoplay($event.target.checked)">
-                        <span class="relative inline-block w-9 h-5 shrink-0 rounded-full bg-gray-300 dark:bg-dark-line transition peer-checked:bg-gray-800 dark:peer-checked:bg-gray-300 peer-focus-visible:ring-2 peer-focus-visible:ring-gray-500
-                                     after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-white dark:after:bg-dark-page after:transition peer-checked:after:translate-x-4"
-                              aria-hidden="true"></span>
-                    </label>
-                </div>
                 <div id="flip-drawer-body" class="px-6 pb-6" @click="onDrawerClick"></div>
             </aside>
         </div>
@@ -112,10 +103,9 @@ import FlipTile from "./FlipTile.vue";
 import {buildPages, findPageForPost, firstPostOnPage} from "../flip/layout";
 import {listingData, sinceLabel} from "../listing";
 import {router} from "@inertiajs/vue3";
-import {DEFAULT_INTERVAL_SECONDS, createAutoplayTimer} from "../flip/autoplay";
+import {createAutoplayTimer, resolveAutoplaySeconds} from "../flip/autoplay";
 
 const AUTOPLAY_TICK_MS = 250;
-const AUTOPLAY_STORAGE_KEY = 'flip-autoplay';
 
 const WHEEL_THRESHOLD = 50;
 const WHEEL_IDLE_MS = 200;
@@ -123,14 +113,6 @@ const WHEEL_IDLE_MS = 200;
 // Links marked with data-flip-keep-drawer reopen the drawer after the page visit
 const KEEP_DRAWER_KEY = 'flip-keep-drawer-open';
 const KEEP_DRAWER_MAX_AGE_MS = 10000;
-
-function readStoredAutoplay() {
-    try {
-        return window.localStorage.getItem(AUTOPLAY_STORAGE_KEY) === '1';
-    } catch (e) {
-        return false;
-    }
-}
 
 export default {
     components: {FlipTile},
@@ -159,6 +141,11 @@ export default {
             type: Number,
             default: null,
         },
+        // Interval saved in the settings, or null when auto-advance is off there
+        savedAutoplaySeconds: {
+            type: Number,
+            default: null,
+        },
     },
     data() {
         return {
@@ -166,8 +153,6 @@ export default {
             height: 0,
             current: 0,
             drawerOpen: false,
-            autoplayStored: readStoredAutoplay(),
-            autoplayOffForView: false,
             autoplayProgress: 0,
             autoplayReloading: false,
             safeAreaPadding: {
@@ -188,17 +173,19 @@ export default {
         pagePath() {
             return window.location.pathname;
         },
-        autoplaySecondsOrDefault() {
-            return this.autoplaySeconds || DEFAULT_INTERVAL_SECONDS;
+        // Interval in use, or null when auto-advance is off
+        activeAutoplaySeconds() {
+            return resolveAutoplaySeconds(this.autoplaySeconds, this.savedAutoplaySeconds);
         },
         autoplayEnabled() {
-            return !this.autoplayOffForView && (this.autoplaySeconds !== null || this.autoplayStored);
+            return this.activeAutoplaySeconds !== null;
         },
     },
     watch: {
-        autoplayEnabled(enabled) {
+        // Also restarts the timer when the saved interval changes with a reload
+        activeAutoplaySeconds(seconds) {
             this.autoplayProgress = 0;
-            if (enabled) {
+            if (seconds !== null) {
                 this.startAutoplay();
             } else {
                 this.stopAutoplay();
@@ -311,7 +298,7 @@ export default {
         },
         startAutoplay() {
             this.stopAutoplay();
-            this.autoplayTimer = createAutoplayTimer(this.autoplaySecondsOrDefault * 1000, Date.now());
+            this.autoplayTimer = createAutoplayTimer(this.activeAutoplaySeconds * 1000, Date.now());
             this.autoplayInterval = setInterval(this.onAutoplayTick, AUTOPLAY_TICK_MS);
         },
         stopAutoplay() {
@@ -336,7 +323,7 @@ export default {
             // Fetch fresh posts when looping, so a long-running display stays current
             this.autoplayReloading = true;
             router.reload({
-                only: ['posts', 'feeds', 'hasMore', 'starredUrls'],
+                only: ['posts', 'feeds', 'hasMore', 'starredUrls', 'autoplay'],
                 // On failure keep showing the current posts and retry on the next loop,
                 // without Inertia's error handling taking over the display
                 onNetworkError: () => false,
@@ -350,15 +337,6 @@ export default {
         onInteraction() {
             if (this.autoplayTimer) {
                 this.autoplayTimer.pauseForInteraction(Date.now());
-            }
-        },
-        setAutoplay(enabled) {
-            this.autoplayOffForView = !enabled;
-            this.autoplayStored = enabled;
-            try {
-                window.localStorage.setItem(AUTOPLAY_STORAGE_KEY, enabled ? '1' : '0');
-            } catch (e) {
-                // Storage unavailable: the choice applies to this page view only
             }
         },
         openDrawer() {

@@ -1,5 +1,6 @@
 import {reactive} from 'vue';
 import {router} from '@inertiajs/vue3';
+import {requestJson} from './http.js';
 
 // Where stars were kept before they moved to the server; read once to import them
 const LEGACY_STORAGE_KEY = 'starred-posts';
@@ -23,33 +24,14 @@ export function snapshotPost(post) {
     };
 }
 
-function readCookie(name) {
-    const match = document.cookie.split('; ').find(cookie => cookie.startsWith(name + '='));
-    return match ? decodeURIComponent(match.slice(name.length + 1)) : '';
-}
-
 /**
  * Send a JSON request to the app. Resolves to true for a 2xx response, false otherwise.
- * Paths are relative so they follow the page's <base> when the app runs on a sub-path.
  * @param {String} method
  * @param {String} path
  * @param {Object} body
  */
 async function sendRequest(method, path, body) {
-    try {
-        const response = await fetch(path, {
-            method,
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-XSRF-TOKEN': readCookie('XSRF-TOKEN'),
-            },
-            body: JSON.stringify(body),
-        });
-        return response.ok;
-    } catch {
-        return false;
-    }
+    return (await requestJson(method, path, body)).ok;
 }
 
 /**

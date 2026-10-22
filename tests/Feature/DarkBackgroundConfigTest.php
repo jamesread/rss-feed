@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Config\AppSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -68,5 +69,22 @@ final class DarkBackgroundConfigTest extends TestCase
         $resp->assertDontSee('data-dark-bg', false);
         $resp->assertDontSee('--app-dark-bg:', false);
         $resp->assertSee(self::DARK_BG_CLASS, false);
+    }
+
+    public function test_saved_dark_background_overrides_env(): void
+    {
+        config(['app.dark_background' => '#101828']);
+        app(AppSettings::class)->save(['dark_background' => '#000000']);
+
+        $this->get('/')->assertOk()->assertSee('data-dark-bg style="--app-dark-bg: #000000"', false);
+    }
+
+    public function test_removed_dark_background_falls_back_to_default(): void
+    {
+        config(['app.dark_background' => null]);
+        app(AppSettings::class)->save(['dark_background' => '#000000']);
+        app(AppSettings::class)->save(['dark_background' => null]);
+
+        $this->get('/')->assertOk()->assertDontSee('data-dark-bg', false);
     }
 }

@@ -25,6 +25,16 @@ export function parseAutoplayParam(search) {
 }
 
 /**
+ * The auto-advance interval in use: the URL parameter's interval when the page was opened
+ * with one, otherwise the interval saved in the settings. Null means auto-advance is off.
+ * @param {Number|null} urlSeconds from parseAutoplayParam()
+ * @param {Number|null} savedSeconds saved interval, or null when auto-advance is off in the settings
+ */
+export function resolveAutoplaySeconds(urlSeconds, savedSeconds) {
+    return urlSeconds ?? savedSeconds ?? null;
+}
+
+/**
  * Timing state for auto-advance. Call tick() regularly; it reports when to turn
  * the page and how far the current interval has progressed (0 to 1).
  * While paused the interval keeps restarting, so it runs in full once the pause ends.

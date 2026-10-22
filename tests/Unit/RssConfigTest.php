@@ -43,6 +43,27 @@ final class RssConfigTest extends TestCase
         $this->assertEquals($expected, $config->toString());
     }
 
+    public function test_to_string_round_trips_names_colours_sites_and_hidden_flags(): void
+    {
+        $lines = implode("\n", [
+            'https://example.com/a.xml Acme_News[#f00] site=https://x.example #acme #news',
+            '-https://example.com/b.xml Cat_Facts #cats',
+        ]);
+        $config = new RssConfig();
+        $config->parseFromString($lines);
+        $this->assertEquals('Acme News', $config->getName('https://example.com/a.xml'));
+
+        $this->assertEquals($lines, $config->toString());
+
+        $reparsed = new RssConfig();
+        $reparsed->parseFromString($config->toString());
+        $this->assertEquals('Acme News', $reparsed->getName('https://example.com/a.xml'));
+        $this->assertEquals('#f00', $reparsed->getColor('https://example.com/a.xml'));
+        $this->assertEquals('https://x.example', $reparsed->getSite('https://example.com/a.xml'));
+        $this->assertSame(['#acme', '#news'], $reparsed->getTags('https://example.com/a.xml'));
+        $this->assertTrue($reparsed->getHidden('https://example.com/b.xml'));
+    }
+
     public function test_parse_from_string_tolerates_extra_whitespace(): void
     {
         $config = new RssConfig();

@@ -1,5 +1,5 @@
 import {describe, expect, test} from 'vitest';
-import {createAutoplayTimer, parseAutoplayParam} from '../../resources/js/flip/autoplay.js';
+import {createAutoplayTimer, parseAutoplayParam, resolveAutoplaySeconds} from '../../resources/js/flip/autoplay.js';
 
 describe('parseAutoplayParam', () => {
     test.each([
@@ -51,5 +51,17 @@ describe('createAutoplayTimer', () => {
         const timer = createAutoplayTimer(30000, 0);
         timer.restart(20000);
         expect(timer.tick(35000).progress).toBe(0.5);
+    });
+});
+
+describe('resolveAutoplaySeconds', () => {
+    test.each([
+        ['URL only', 45, null, 45],
+        ['saved only', null, 15, 15],
+        ['both, URL wins', 45, 120, 45],
+        ['neither', null, null, null],
+        ['saved missing', null, undefined, null],
+    ])('%s', (name, urlSeconds, savedSeconds, expected) => {
+        expect(resolveAutoplaySeconds(urlSeconds, savedSeconds)).toBe(expected);
     });
 });

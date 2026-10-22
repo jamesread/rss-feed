@@ -1,11 +1,7 @@
 @php
-    $theme = strtolower(trim((string) config('app.theme')));
-    if (!in_array($theme, ['system', 'dark', 'light'], true)) {
-        $theme = 'system';
-    }
-
-    $darkBackground = strtolower(trim((string) config('app.dark_background')));
-    $darkBackground = preg_match('/^#?([0-9a-f]{3}(?:[0-9a-f]{3})?)$/', $darkBackground, $match) ? '#' . $match[1] : null;
+    $settings = app(\App\Config\AppSettings::class);
+    $theme = $settings->theme();
+    $darkBackground = $settings->darkBackground();
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ $theme }}" class="h-full dark:bg-dark-page"@if($darkBackground) data-dark-bg style="--app-dark-bg: {{ $darkBackground }}"@endif>

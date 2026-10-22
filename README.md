@@ -21,6 +21,7 @@ This project is a fork of [danb/rss](https://codeberg.org/danb/rss). On top of t
 - **Starred posts.** Posts can be starred and found again under "Starred". Stars are stored on the server, so every device sees the same list (see [Starred Posts](#starred-posts)).
 - **Starred posts RSS feed.** The starred posts are published as an RSS feed at `/favorites`, including thumbnails.
 - **Time filter.** Listings can be limited to the last 24 hours, 7 days or 30 days.
+- **Settings page.** Theme, dark background, auto-advance and the feed list can be changed in the browser at `/settings`. Changes are kept across container restarts (see [Settings](#settings)).
 
 ## Features
 
@@ -43,6 +44,7 @@ The following features are built into the application:
 - Publisher suffixes removed from Google News titles and shown as "via <publisher>".
 - Time filter (last 24 hours, 7 days or 30 days), combinable with search.
 - Flip view auto-advance for kiosk displays (see [Kiosk / Information Display](#kiosk--information-display)).
+- Settings page for the theme, dark background, auto-advance and feeds (see [Settings](#settings)).
 - Starred / read-later posts, stored on the server and shared by all devices. They survive old posts being pruned.
 - RSS feed of the starred posts at `/favorites` (see [Starred Posts RSS Feed](#starred-posts-rss-feed)).
 - Ready-to-use docker image.
@@ -184,6 +186,18 @@ https://news.google.com/rss/search?q=Acme Acme-News site=https://www.example.com
 - https://example.com/feed-d.xml Cat_Facts #cats #facts
 ```
 
+### Editing feeds in the browser
+
+The feed list can also be edited on the settings page under Settings → Feeds (`/settings/feeds`), without touching the file.
+Each feed is one row with a title, tags, the feed URL and an optional picture origin (the `site=` value).
+Title, tags and URL are required. Separate several tags with commas: `tag_1,tag_2` and `tag_1, tag_2` both work, and the `#` is added for you.
+Use "+ Add feed" for a new row and the remove button to delete one, then save.
+
+- Saving rewrites the whole file. Comment lines and blank lines are not kept, so keep a copy if you rely on them.
+- Feed colours and the hidden flag are not shown on the page. They are kept unchanged for existing feeds; to change them, edit the file.
+- Spaces in titles are written as underscores, as the file format requires.
+- The application must be able to write the file. The docker image takes care of this for `feeds.txt` in `/app/storage`; a file mounted read-only can only be edited on the host.
+
 ## App Configuration
 
 The application allows some configuration through variables.
@@ -223,6 +237,7 @@ APP_PRUNE_POSTS_AFTER_DAYS=30
 # "system" follows the browser/OS preference, while "dark" and "light"
 # force that theme. Any other value is treated as "system".
 # When using docker, restart the container after changing this.
+# A theme saved on the settings page takes precedence over this value.
 # Defaults to system.
 APP_THEME=system
 
@@ -237,6 +252,7 @@ APP_THEME=system
 # colour to keep it readable. The light theme is not affected.
 # Invalid values are ignored.
 # When using docker, restart the container after changing this.
+# A colour saved on the settings page takes precedence over this value.
 # Defaults to the current dark grey (about #101828).
 APP_DARK_BACKGROUND="#101828"
 ```
@@ -259,6 +275,24 @@ SERVER_PORT=80
 # Set to "single" to only log to the file.
 LOG_STACK=single,stderr
 ```
+
+## Settings
+
+Open `/settings`, for example `https://rss.example.com/settings`, or use the "Settings" link in the sidebar (also in the flip view menu).
+The left pane lists the menus and the right side shows the selected one.
+
+- **General**
+  - Theme: `System`, `Light` or `Dark`.
+  - Dark background: the page background of the dark theme, or "Use default".
+  - Auto-advance: whether flip view turns its pages automatically, and how often (10 s, 15 s, 30 s, 45 s, 1 min or 2 min).
+- **Feeds**: the feed list, see [Editing feeds in the browser](#editing-feeds-in-the-browser).
+
+How settings behave:
+
+- Settings apply to the whole installation, on every device and browser, from the next page load.
+- General settings are stored in the database and feeds in `feeds.txt`, both within `/app/storage`, so they survive restarting or recreating the container.
+- A theme or dark background saved here takes precedence over `APP_THEME` and `APP_DARK_BACKGROUND`. Until you save the General menu, the environment variables apply as before. Choosing "Use default" for the dark background goes back to `APP_DARK_BACKGROUND`, or the built-in grey when that is unset.
+- Like the rest of the application, the settings page has no login: anyone who can open the site can change settings and feeds.
 
 ## Starred Posts
 
@@ -285,14 +319,19 @@ The starred view links to it ("RSS feed" next to "Starred"), and every page anno
 ## Kiosk / Information Display
 
 Flip view can turn its pages automatically, which suits a wall screen or a headless kiosk PC.
-Add `autoplay` to any posts URL to open it in flip view with auto-advance on:
+
+Switch it on under Settings → General and choose the interval (10 s, 15 s, 30 s, 45 s, 1 min or 2 min).
+This applies to the whole installation: flip view then turns its pages on every device. It does not switch other layouts to flip view.
+Displays that are already running pick up a change at their next reload.
+
+To use auto-advance on one display only, leave it off in the settings and add `autoplay` to the posts URL instead.
+This opens the page in flip view with auto-advance on, and it takes precedence over the settings:
 
 - `?autoplay` turns the page every 30 seconds.
 - `?autoplay=45` sets the interval in seconds (5 to 3600).
 
 After the last page it starts again at the first page and reloads the posts, so new posts appear without a manual reload.
 Auto-advance pauses while the menu drawer is open, for 60 seconds after someone touches, swipes, scrolls or types, and while the browser tab is hidden.
-It can also be switched on or off with the `Auto-advance` toggle in the flip view menu, which the browser remembers.
 
 For example, to show the `#News` tag on a kiosk PC:
 
