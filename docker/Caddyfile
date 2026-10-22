@@ -1,10 +1,10 @@
 {
-    servers http://{$SERVER_PORT:80} {
+    servers http://{$SERVER_PORT:8080} {
         trusted_proxies static private_ranges
     }
 }
 
-http://:{$SERVER_PORT:80} {
+http://:{$SERVER_PORT:8080} {
     root * /app/public
     encode gzip
 

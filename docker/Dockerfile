@@ -55,8 +55,8 @@ RUN set -xe && \
     php85 artisan route:cache
 
 # Run our process wrapper script
-EXPOSE 80/tcp
-ENV SERVER_PORT=80
+EXPOSE 8080/tcp
+ENV SERVER_PORT=8080
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD wget -qO- http://localhost:80/ > /dev/null 2>&1 || exit 1
+  CMD wget -qO- http://localhost:${SERVER_PORT}/ > /dev/null 2>&1 || exit 1
 CMD /app/docker/run.sh

@@ -109,7 +109,9 @@ Upon the above, it's quite likely you'll come across issues. This project was cr
 
 A pre-built docker image is available to run the application. 
 Storage data is confined to a single `/app/storage` directory for easy volume mounting.
-Port 80 is exposed by default for application access. This application does not support HTTPS, for that you should instead use a proxy layer such as nginx.
+Port 8080 is exposed by default for application access. This application does not support HTTPS, for that you should instead use a proxy layer such as nginx.
+
+> **Upgrading from an image that listened on port 80:** change the container side of your port mapping from `80` to `8080` (for example `"8080:80"` becomes `"8080:8080"`), or set `SERVER_PORT=80` to keep the old port.
 
 #### Docker Run Command Example
 
@@ -118,7 +120,7 @@ In the below command, the application will be accessible at http://localhost:808
 ```shell
 docker run -d \
     --restart unless-stopped \
-    -p 8080:80 \
+    -p 8080:8080 \
     -v /home/barry/rss:/app/storage \
     quay.io/michard/rss-feed:latest
 ```
@@ -139,7 +141,7 @@ services:
         volumes:
             - ./rss-files:/app/storage
         ports:
-            - "8080:80"
+            - "8080:8080"
         restart: unless-stopped
 ```
 
@@ -263,12 +265,11 @@ The following environment can be used to configure our default docker container 
 
 
 ```bash
-# The port which the server (caddy) will listen on.
-# By default, the server will listen on port 80 but this can cause issues
-# in some rootless environments, like when using podman for example.
-# You can set this to an unprivileged port instead (eg. 8080) and then
-# map using that port instead of 80 in the docker/podman command/compose-file.
-SERVER_PORT=80
+# The port which the server (caddy) will listen on inside the container.
+# It defaults to the unprivileged port 8080, which also works in rootless
+# environments like podman. If you change it, map that port instead of 8080
+# in the docker/podman command/compose-file.
+SERVER_PORT=8080
 
 # Where application logs are written.
 # The image writes to both the log file in storage/logs and the container
@@ -371,7 +372,7 @@ The below shows a sub-path proxy config location block for nginx. Note the `X-Fo
 
 ```nginx
 location /rss/ {
-    proxy_pass http://container-ip:80/;
+    proxy_pass http://container-ip:8080/;
     proxy_set_header Host              $host;
     proxy_set_header X-Real-IP         $remote_addr;
     proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
