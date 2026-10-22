@@ -20,7 +20,8 @@
             </div>
         </div>
 
-        <div class="md:w-2/3 xl:w-3/4 px-6 md:px-12 md:overflow-auto md:h-full py-2">
+        <!-- relative: the visually hidden row labels are absolutely positioned, so they must stay inside this scrolling pane instead of stretching the page -->
+        <div class="relative md:w-2/3 xl:w-3/4 px-6 md:px-12 md:overflow-auto md:h-full py-2">
             <h2 class="font-bold text-black dark:text-gray-400 mb-4">Settings / {{ currentLabel }}</h2>
 
             <form v-if="section === 'general'" class="max-w-lg space-y-8 pb-8" @submit.prevent="saveGeneral">
