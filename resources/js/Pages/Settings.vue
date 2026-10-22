@@ -180,8 +180,8 @@
                                 :disabled="aiForm.systemPrompt === ai.default_system_prompt"
                                 @click="aiForm.systemPrompt = ai.default_system_prompt">Use default</button>
                     </div>
-                    <textarea id="ai-system-prompt" v-model="aiForm.systemPrompt" rows="9"
-                              class="w-full border border-gray-300 dark:border-dark-line rounded-sm px-2 py-1 bg-white dark:bg-dark-page text-sm"></textarea>
+                    <textarea id="ai-system-prompt" v-model="aiForm.systemPrompt" rows="20" spellcheck="false"
+                              class="w-full border border-gray-300 dark:border-dark-line rounded-sm px-2 py-1 bg-white dark:bg-dark-page font-mono text-xs leading-relaxed"></textarea>
                     <p v-if="errors.system_prompt" class="mt-1 text-sm text-red-600 dark:text-red-400">{{ errors.system_prompt }}</p>
                 </div>
 

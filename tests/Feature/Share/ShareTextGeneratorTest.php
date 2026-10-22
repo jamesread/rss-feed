@@ -38,7 +38,7 @@ final class ShareTextGeneratorTest extends TestCase
 
     protected function assertUserMessage(string $message): void
     {
-        $this->assertEquals("Title: An article\nSource: Tech News\nSummary: What the article is about.\nLink: https://example.com/article", $message);
+        $this->assertEquals("Article title: An article\nArticle source: Tech News\nArticle content or summary: What the article is about.\nArticle URL: https://example.com/article", $message);
     }
 
     public function test_openai_request_and_response(): void

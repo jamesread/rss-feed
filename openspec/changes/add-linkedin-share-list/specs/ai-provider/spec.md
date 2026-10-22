@@ -45,8 +45,9 @@ The Social Media menu SHALL have an `Instructions` text box. Every generation SH
 #### Scenario: Default instructions
 - **WHEN** no instructions are saved and a reader opens the Social Media menu
 - **THEN** the text box shows the default instructions, which ask for:
-  - A friendly LinkedIn post of at most three paragraphs, each at most three sentences.
-  - Modest emoji use and no typical AI wording.
+  - A friendly LinkedIn post written from a technology professional's perspective, faithful to the article.
+  - At most three paragraphs, each at most three sentences.
+  - At most five emojis and no buzzwords or typical AI wording.
   - No em dashes and no false contrasts such as "this is not about X, it is about Y".
   - 3 to 4 hashtags, with the article link on the last line.
 

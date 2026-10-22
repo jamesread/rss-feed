@@ -121,10 +121,10 @@ class ShareTextGenerator
     protected function userMessage(SharedPost $post): string
     {
         return implode("\n", [
-            'Title: ' . $post->title,
-            'Source: ' . ($post->feed['name'] ?? ''),
-            'Summary: ' . $post->description,
-            'Link: ' . $post->url,
+            'Article title: ' . $post->title,
+            'Article source: ' . ($post->feed['name'] ?? ''),
+            'Article content or summary: ' . $post->description,
+            'Article URL: ' . $post->url,
         ]);
     }
 }

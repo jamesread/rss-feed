@@ -120,8 +120,7 @@
   - `forget_api_key` boolean.
   - `system_prompt` nullable string, max 10 000. Null, or equal to the default, forgets the key.
 - **The `ai` props** sent to the page are: `provider`, `endpoint`, `model`, `has_api_key`, `system_prompt`, `default_system_prompt`, and `fixed_endpoints` (a map). They never include the key.
-- **Default system prompt** (a constant):
-  > You write LinkedIn posts that share an article with a professional audience. Write in a friendly, personal and natural tone, as a person sharing something they found worth reading. Use at most three short paragraphs of at most three sentences each. Use emojis sparingly, at most two in the whole post. Avoid typical AI phrases and buzzwords such as "delve", "game-changer", "in today's fast-paced world", "unlock" or "exciting times". Do not invent facts that are not in the article details. End with 3 to 4 relevant hashtags on one line, followed by the article link on the last line. Reply with the post text only.
+- **Default system prompt** (a constant, `AppSettings::DEFAULT_AI_SYSTEM_PROMPT`): Markdown-style sections for content and perspective, tone and writing style (no buzzwords, no em dashes, no false contrasts, at most five emojis), structure and length (at most three paragraphs of at most three sentences, 3 to 4 hashtags, URL last), output requirements, and an Input section. The user message carries the post with the Input section's labels: `Article title:`, `Article source:`, `Article content or summary:`, `Article URL:`.
 
 ### 5. Share view and props
 

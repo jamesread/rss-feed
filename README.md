@@ -292,7 +292,7 @@ The left pane lists the menus and the right side shows the selected one.
   - Provider: `OpenAI`, `Anthropic`, `OpenRouter` or `OpenAI compatible`. The first three use their official API endpoint (`https://api.openai.com/v1`, `https://api.anthropic.com/v1`, `https://openrouter.ai/api/v1`). For `OpenAI compatible`, enter the base URL of any API that speaks the OpenAI chat completions format, for example `http://ollama:11434/v1`. Such an endpoint may run without a key.
   - Model: the model name sent to the provider, for example `gpt-5-mini` or `claude-sonnet-5-5`.
   - API key: stored in the database and never shown again or sent to the browser. Leave the field empty to keep the saved key, or tick "Remove saved key".
-  - Instructions: the instructions (system prompt) for every generated post. The default asks for a friendly post of at most three short paragraphs, few emojis, no typical AI wording, no em dashes, no "this is not about X, it is about Y" framings, 3 to 4 hashtags and the article link at the end. "Use default" goes back to it.
+  - Instructions: the instructions (system prompt) for every generated post. The default, written in Markdown sections, asks for a friendly, faithful post from a technology professional's view: at most three short paragraphs of at most three sentences, at most five emojis, no buzzwords or typical AI wording, no em dashes, no "this is not about X, it is about Y" framings, 3 to 4 hashtags and the article link on the last line. The post details are sent with the labels of its "Input" section. "Use default" goes back to it.
 
 How settings behave:
 
