@@ -146,6 +146,25 @@ services:
         restart: unless-stopped
 ```
 
+#### Image Tags
+
+The image `quay.io/michard/rss-feed` is published with these tags:
+
+- `latest`: the newest build of the `main` branch.
+- `sha-<commit>`: one tag per build, for example `sha-9fd2ade`, to pin an exact commit.
+- `<version>`: one tag per release, for example `3.0.0`, once releases are tagged.
+
+To stay on a release instead of following `latest`, use its version, for example `quay.io/michard/rss-feed:3.0.0` in the `docker run` command or the `image:` line of the compose file.
+
+To cut a release, tag the commit with `v` and the version and push that one tag. The build publishes the image as `<version>`, without the `v`, and leaves `latest` unchanged:
+
+```shell
+git tag v3.0.0
+git push origin v3.0.0
+```
+
+Fork releases start at `v3.0.0`, above the `v2.2.3` inherited from the original project. Push tags one at a time and avoid `git push --tags`, which would also push all inherited upstream tags.
+
 
 ### Building the Docker Image
 

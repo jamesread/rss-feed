@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 concurrency:
@@ -41,7 +43,8 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_PASSWORD }}
 
-      # Tags: sha-<short commit sha> on every build, latest on the default branch
+      # Tags: sha-<short commit sha> on every build, latest on the default branch,
+      # and <version> (without the "v") when a v* version tag is pushed
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -50,6 +53,7 @@ jobs:
           tags: |
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
+            type=semver,pattern={{version}}
 
       - name: Build and push image
         uses: docker/build-push-action@v6
