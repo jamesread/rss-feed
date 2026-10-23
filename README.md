@@ -2,6 +2,7 @@
 
 [![Container Build](https://github.com/smichard/rss-reader/actions/workflows/action.yml/badge.svg?branch=main "Status of the last build")](https://github.com/smichard/rss-reader/actions/workflows/action.yml)
 [![Container Registry on Quay](https://img.shields.io/badge/Quay-Container_Registry-46b9e5 "Container Registry on Quay")](https://quay.io/repository/michard/rss-feed)
+[![Container Registry on GHCR](https://img.shields.io/badge/GHCR-Container_Registry-2088ff "Container Registry on GitHub")](https://github.com/smichard/rss-feed/pkgs/container/rss-feed)
 
 A simple, opinionated, web application which aggregates and displays RSS feeds in a clean social-feed-like UI.
 
@@ -125,6 +126,8 @@ docker run -d \
     -v /home/barry/rss:/app/storage \
     quay.io/michard/rss-feed:latest
 ```
+
+The same image is also published to the GitHub Container Registry as `ghcr.io/smichard/rss-feed:latest`.
 
 #### Docker Compose Example
 
