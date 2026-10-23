@@ -23,6 +23,7 @@ This project is a fork of [danb/rss](https://codeberg.org/danb/rss). On top of t
 - **Time filter.** Listings can be limited to the last 24 hours, 7 days or 30 days.
 - **Settings page.** Theme, dark background, auto-advance and the feed list can be changed in the browser at `/settings`. Changes are kept across container restarts (see [Settings](#settings)).
 - **Share list with AI-written LinkedIn posts.** Starred posts can be added to a share list, where an AI provider drafts a LinkedIn post for each one that you can edit and hand to LinkedIn (see [Share List](#share-list)).
+- **Container listens on port 8080.** The image serves on the unprivileged port 8080 instead of 80, so it also runs under rootless podman. Existing port mappings need the container side changed from `80` to `8080` (see [Docker Usage](#docker-usage)).
 
 ## Features
 
