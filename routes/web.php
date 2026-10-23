@@ -27,3 +27,4 @@ Route::put('/settings/ai', [SettingsController::class, 'updateAi']);
 Route::get('/f/{feed}', [PostViewController::class, 'feed']);
 
 Route::get('/feed', [FeedController::class, 'get']);
+Route::post('/feed', [FeedController::class, 'refresh']);

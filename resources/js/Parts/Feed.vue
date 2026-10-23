@@ -14,6 +14,17 @@
                   <path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708z"/>
                 </svg>
             </span>
+            <button type="button"
+                    class="ml-1.5 inline-flex align-middle text-gray-400 hover:text-gray-700 dark:text-gray-600 dark:hover:text-gray-300 disabled:opacity-40 disabled:hover:text-gray-400 dark:disabled:hover:text-gray-600"
+                    :disabled="feed.reloading"
+                    :aria-label="`Refresh ${feed.name} now`"
+                    title="Refresh now"
+                    @click.stop.prevent="refreshNow">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                    <path d="M8 4.466V.534a.25.25 0 0 1 .41-.184l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                </svg>
+            </button>
         </h4>
         <div class="font-mono text-gray-600 dark:text-gray-500 text-xs my-1 text-ellipsis whitespace-nowrap w-full overflow-hidden">{{ feed.url }}</div>
         <div class="flex gap-1 text-gray-600 dark:text-gray-500 text-sm flex-wrap">
@@ -37,6 +48,7 @@
 </template>
 <script>
 import Tag from "./Tag.vue";
+import {requestJson} from "../http";
 import {feedFetchErrorLabel} from "../util";
 
 export default {
@@ -58,6 +70,23 @@ export default {
     methods: {
         reload() {
             window.location.reload();
+        },
+        async refreshNow() {
+            if (this.feed.reloading) {
+                return;
+            }
+            this.feed.reloading = true;
+            this.pendingRefresh = false;
+            if (this.reloadingPoll) {
+                window.clearTimeout(this.reloadingPoll);
+                this.reloadingPoll = null;
+            }
+            const result = await requestJson('POST', 'feed', {url: this.feed.url});
+            if (!result.ok) {
+                this.feed.reloading = false;
+                return;
+            }
+            this.reloadingPoll = setTimeout(this.pollFeedStatus.bind(this), 3000);
         },
         async pollFeedStatus() {
             const feedUrlEncoded = encodeURIComponent(this.feed.url);

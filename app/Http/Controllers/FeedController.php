@@ -23,4 +23,23 @@ class FeedController extends Controller
 
         return response()->json($feed);
     }
+
+    /**
+     * Start a fetch of the given feed, even if it is not yet outdated.
+     */
+    public function refresh(Request $request): JsonResponse
+    {
+        $url = $request->validate([
+            'url' => ['required', 'string'],
+        ])['url'];
+
+        $feed = $this->feedProvider->get($url);
+        if (is_null($feed)) {
+            return response()->json(null, 404);
+        }
+
+        $feed->startReloading();
+
+        return response()->json($feed);
+    }
 }
