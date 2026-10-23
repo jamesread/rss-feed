@@ -43,8 +43,8 @@ jobs:
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_PASSWORD }}
 
-      # Tags: sha-<short commit sha> on every build, latest on the default branch,
-      # and <version> (without the "v") when a v* version tag is pushed
+      # Tags: sha-<short commit sha> on every build, <version> (without the "v") when a
+      # v* version tag is pushed, and latest on main and on release tags (not pre-releases like v3.0.0-rc.1)
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -52,7 +52,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=sha
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || (startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-')) }}
             type=semver,pattern={{version}}
 
       - name: Build and push image

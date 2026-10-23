@@ -18,12 +18,12 @@
 
 ## 2. End-to-end check (after the user approves pushing)
 
-- [ ] 2.1 After the change is pushed to `main`, confirm the `main` run still publishes only `sha-<sha>` and `latest`.
+- [x] 2.1 After the change is pushed to `main`, confirm the `main` run still publishes only `sha-<sha>` and `latest`.
   Verify: `gh run view` shows the metadata step output without a version tag, and `skopeo list-tags docker://quay.io/michard/rss-feed` shows no new version tag.
-- [ ] 2.2 With the user's go-ahead, push the pre-release tag `v3.0.0-rc.1`.
+- [x] 2.2 With the user's go-ahead, push the pre-release tag `v3.0.0-rc.1`.
   Verify:
   - The run is triggered by the tag and the tests pass.
   - quay.io gets `3.0.0-rc.1` and `sha-<sha>`.
   - The digest of `latest` is unchanged (compare `skopeo inspect` before and after).
 - [ ] 2.3 With the user's go-ahead, push the first release tag `v3.0.0`.
-  Verify: quay.io gets `3.0.0`, and `docker pull quay.io/michard/rss-feed:3.0.0` works.
+  Verify: quay.io gets `3.0.0`, `sha-<sha>` and `latest`, all with the same digest, and `docker pull quay.io/michard/rss-feed:3.0.0` works.

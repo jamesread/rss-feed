@@ -150,13 +150,13 @@ services:
 
 The image `quay.io/michard/rss-feed` is published with these tags:
 
-- `latest`: the newest build of the `main` branch.
+- `latest`: the newest build of the `main` branch or the newest release, whichever was published last.
 - `sha-<commit>`: one tag per build, for example `sha-9fd2ade`, to pin an exact commit.
 - `<version>`: one tag per release, for example `3.0.0`, once releases are tagged.
 
 To stay on a release instead of following `latest`, use its version, for example `quay.io/michard/rss-feed:3.0.0` in the `docker run` command or the `image:` line of the compose file.
 
-To cut a release, tag the commit with `v` and the version and push that one tag. The build publishes the image as `<version>`, without the `v`, and leaves `latest` unchanged:
+To cut a release, tag the commit with `v` and the version and push that one tag. The build publishes the image as `<version>` (without the `v`), `sha-<commit>` and `latest`. Pre-release tags such as `v3.0.0-rc.1` get their version tag but leave `latest` unchanged:
 
 ```shell
 git tag v3.0.0

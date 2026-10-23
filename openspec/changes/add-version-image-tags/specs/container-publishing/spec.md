@@ -18,15 +18,15 @@ Every push to `main` SHALL publish the image tagged `sha-<short commit sha>` and
 - **THEN** no image is published
 
 ### Requirement: Version tag builds are tagged with the version
-Pushing a git tag of the form `v<semver>` (for example `v3.0.0` or `v3.0.0-rc.1`) SHALL build the tagged commit, run the tests, and publish the image tagged with the version without the leading `v` (`3.0.0`, `3.0.0-rc.1`) and `sha-<short commit sha>`. A version tag build SHALL NOT move `latest`.
+Pushing a git tag of the form `v<semver>` (for example `v3.0.0` or `v3.0.0-rc.1`) SHALL build the tagged commit, run the tests, and publish the image tagged with the version without the leading `v` (`3.0.0`, `3.0.0-rc.1`) and `sha-<short commit sha>`. A release tag build SHALL also publish `latest`; a pre-release tag build (a version with a `-` suffix) SHALL NOT move `latest`.
 
 #### Scenario: Release tag
 - **WHEN** the tag `v3.0.0` is pushed and the tests pass
-- **THEN** the image is published as `3.0.0` and `sha-<short sha>`, and `latest` is unchanged
+- **THEN** the image is published as `3.0.0`, `sha-<short sha>` and `latest`
 
 #### Scenario: Pre-release tag
 - **WHEN** the tag `v3.0.0-rc.1` is pushed and the tests pass
-- **THEN** the image is published as `3.0.0-rc.1`
+- **THEN** the image is published as `3.0.0-rc.1` and `sha-<short sha>`, and `latest` is unchanged
 
 ### Requirement: Non-version tags publish nothing extra
 A pushed git tag that does not start with `v` SHALL NOT start a publish. A `v` tag that is not a valid semantic version SHALL NOT produce a version image tag.

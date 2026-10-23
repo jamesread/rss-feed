@@ -43,14 +43,15 @@ on:
 ```yaml
 tags: |
   type=sha
-  type=raw,value=latest,enable={{is_default_branch}}
+  type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || (startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-')) }}
   type=semver,pattern={{version}}
 ```
 
 - **How `type=semver` behaves:** it only produces a tag when the ref is a git tag that parses as semver. It strips the `v` (`v3.0.0` becomes `3.0.0`) and keeps pre-release suffixes (`3.0.0-rc.1`). On branch builds, and on tags like `vnext`, it emits nothing. That is the "only if available" behaviour, with no scripting.
 - **Existing rules on a tag build:**
   - `type=sha` still emits `sha-<short sha>`.
-  - `latest` stays off, because `{{is_default_branch}}` is false for tag refs. So pushing `v3.0.0` never moves `latest`, and `latest` keeps following `main`.
+  - `latest` is set on `main` and on release tags, so pushing `v3.0.0` publishes `3.0.0`, `sha-<sha>` and `latest`. Pre-release tags (a `-` in the tag name, such as `v3.0.0-rc.1`) don't move `latest`, so a test build never becomes what everyone pulls. This was changed after the first pre-release run, at the user's request that release builds carry the sha, version and latest tags.
+  - Trade-off: pushing a release tag for an older commit moves `latest` back to that commit until the next `main` push.
 
 *Alternatives:*
 - **Read `git describe` in a shell step and add the result:** this tags `main` builds with the nearest older tag. Two different images could then carry the same version, so it's rejected.
