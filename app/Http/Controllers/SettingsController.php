@@ -30,6 +30,8 @@ class SettingsController extends Controller
                 'default_dark_background' => AppSettings::normalizeColor(config('app.dark_background')) ?? AppSettings::DEFAULT_DARK_BACKGROUND,
                 'autoplay_enabled' => $this->settings->autoplayEnabled(),
                 'autoplay_seconds' => $this->settings->autoplayInterval(),
+                'custom_css_enabled' => $this->settings->customCssEnabled(),
+                'custom_css' => $this->settings->savedCustomCss(),
             ],
             'autoplayIntervals' => AppSettings::AUTOPLAY_INTERVALS,
             'rows' => $this->feedRows(),
@@ -54,6 +56,8 @@ class SettingsController extends Controller
             'dark_background' => ['nullable', 'string', 'regex:/^#([0-9a-fA-F]{3}){1,2}$/'],
             'autoplay_enabled' => ['required', 'boolean'],
             'autoplay_seconds' => ['required', 'integer', Rule::in(AppSettings::AUTOPLAY_INTERVALS)],
+            'custom_css_enabled' => ['required', 'boolean'],
+            'custom_css' => ['nullable', 'string', 'max:' . AppSettings::MAX_CUSTOM_CSS_LENGTH],
         ]);
 
         $this->settings->save([
@@ -61,6 +65,8 @@ class SettingsController extends Controller
             'dark_background' => isset($data['dark_background']) ? AppSettings::normalizeColor($data['dark_background']) : null,
             'autoplay_enabled' => $data['autoplay_enabled'] ? '1' : '0',
             'autoplay_seconds' => (string) $data['autoplay_seconds'],
+            'custom_css_enabled' => $data['custom_css_enabled'] ? '1' : '0',
+            'custom_css' => $this->storedCustomCss($data['custom_css'] ?? null),
         ]);
 
         return response()->noContent();
@@ -169,6 +175,12 @@ class SettingsController extends Controller
         }
 
         return response()->noContent();
+    }
+
+    protected function storedCustomCss(?string $css): ?string
+    {
+        $css = (string) $css;
+        return $css === '' ? null : $css;
     }
 
     protected function customPrompt(?string $prompt): ?string

@@ -22,7 +22,7 @@ This project is a fork of [danb/rss](https://codeberg.org/danb/rss). On top of t
 - **Starred posts.** Posts can be starred and found again under "Starred". Stars are stored on the server, so every device sees the same list (see [Starred Posts](#starred-posts)).
 - **Starred posts RSS feed.** The starred posts are published as an RSS feed at `/favorites`, including thumbnails.
 - **Time filter.** Listings can be limited to the last 24 hours, 7 days or 30 days.
-- **Settings page.** Theme, dark background, auto-advance and the feed list can be changed in the browser at `/settings`. Changes are kept across container restarts (see [Settings](#settings)).
+- **Settings page.** Theme, dark background, auto-advance, custom CSS and the feed list can be changed in the browser at `/settings`. Changes are kept across container restarts (see [Settings](#settings)).
 - **Share list with AI-written LinkedIn posts.** Starred posts can be added to a share list, where an AI provider drafts a LinkedIn post for each one that you can edit and hand to LinkedIn (see [Share List](#share-list)).
 - **Container listens on port 8080.** The image serves on the unprivileged port 8080 instead of 80, so it also runs under rootless podman. Existing port mappings need the container side changed from `80` to `8080` (see [Docker Usage](#docker-usage)).
 
@@ -47,7 +47,7 @@ The following features are built into the application:
 - Publisher suffixes removed from Google News titles and shown as "via <publisher>".
 - Time filter (last 24 hours, 7 days or 30 days), combinable with search.
 - Flip view auto-advance for kiosk displays (see [Kiosk / Information Display](#kiosk--information-display)).
-- Settings page for the theme, dark background, auto-advance and feeds (see [Settings](#settings)).
+- Settings page for the theme, dark background, auto-advance, custom CSS and feeds (see [Settings](#settings)).
 - Starred / read-later posts, stored on the server and shared by all devices. They survive old posts being pruned.
 - RSS feed of the starred posts at `/favorites` (see [Starred Posts RSS Feed](#starred-posts-rss-feed)).
 - Share list for starred posts with AI-drafted, editable LinkedIn posts (OpenAI, Anthropic, OpenRouter or any OpenAI compatible API, see [Share List](#share-list)).
@@ -311,6 +311,7 @@ The left pane lists the menus and the right side shows the selected one.
   - Theme: `System`, `Light` or `Dark`.
   - Dark background: the page background of the dark theme, or "Use default".
   - Auto-advance: whether flip view turns its pages automatically, and how often (10 s, 15 s, 30 s, 45 s, 1 min or 2 min).
+  - Custom CSS: when enabled, a textarea for CSS that overlays the theme and takes priority over every page element. Turning it off keeps the saved rules so they can be switched back on.
 - **Feeds**: the feed list, see [Editing feeds in the browser](#editing-feeds-in-the-browser).
 - **Social Media**: the AI provider that drafts the posts in the [share list](#share-list).
   - Provider: `OpenAI`, `Anthropic`, `OpenRouter` or `OpenAI compatible`. The first three use their official API endpoint (`https://api.openai.com/v1`, `https://api.anthropic.com/v1`, `https://openrouter.ai/api/v1`). For `OpenAI compatible`, enter the base URL of any API that speaks the OpenAI chat completions format, for example `http://ollama:11434/v1`. Such an endpoint may run without a key.

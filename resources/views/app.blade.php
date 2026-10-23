@@ -2,6 +2,7 @@
     $settings = app(\App\Config\AppSettings::class);
     $theme = $settings->theme();
     $darkBackground = $settings->darkBackground();
+    $overlayCss = $settings->overlayCss();
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ $theme }}" class="h-full dark:bg-dark-page"@if($darkBackground) data-dark-bg style="--app-dark-bg: {{ $darkBackground }}"@endif>
@@ -23,5 +24,8 @@
 </head>
 <body class="h-full">
 @inertia
+@if($overlayCss)
+<style id="custom-css">{!! $overlayCss !!}</style>
+@endif
 </body>
 </html>

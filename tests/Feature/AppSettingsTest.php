@@ -104,6 +104,45 @@ final class AppSettingsTest extends TestCase
         $this->assertEquals('Be brief.', $this->settings()->aiSystemPrompt());
     }
 
+    public function test_custom_css_is_off_by_default(): void
+    {
+        $this->assertFalse($this->settings()->customCssEnabled());
+        $this->assertEquals('', $this->settings()->savedCustomCss());
+        $this->assertNull($this->settings()->overlayCss());
+    }
+
+    public function test_overlay_css_is_only_returned_when_enabled(): void
+    {
+        $this->settings()->save(['custom_css' => 'body { color: red; }']);
+        $this->assertEquals('body { color: red; }', $this->settings()->savedCustomCss());
+        $this->assertFalse($this->settings()->customCssEnabled());
+        $this->assertNull($this->settings()->overlayCss());
+
+        $this->settings()->save(['custom_css_enabled' => '1']);
+        $this->assertTrue($this->settings()->customCssEnabled());
+        $this->assertEquals('body { color: red; }', $this->settings()->overlayCss());
+
+        $this->settings()->save(['custom_css_enabled' => '0']);
+        $this->assertNull($this->settings()->overlayCss());
+        $this->assertEquals('body { color: red; }', $this->settings()->savedCustomCss());
+    }
+
+    public function test_overlay_css_strips_style_breakout(): void
+    {
+        $this->settings()->save([
+            'custom_css_enabled' => '1',
+            'custom_css' => "body{}\0</style><script>alert(1)</script></STYLE>",
+        ]);
+
+        $this->assertEquals('body{}<script>alert(1)</script>', $this->settings()->overlayCss());
+    }
+
+    public function test_empty_enabled_css_is_not_an_overlay(): void
+    {
+        $this->settings()->save(['custom_css_enabled' => '1', 'custom_css' => '   ']);
+        $this->assertNull($this->settings()->overlayCss());
+    }
+
     public function test_missing_table_falls_back_to_env(): void
     {
         Schema::drop('settings');
@@ -112,5 +151,7 @@ final class AppSettingsTest extends TestCase
         $this->assertEquals('dark', $this->settings()->theme());
         $this->assertEquals('#111', $this->settings()->darkBackground());
         $this->assertNull($this->settings()->autoplaySeconds());
+        $this->assertFalse($this->settings()->customCssEnabled());
+        $this->assertNull($this->settings()->overlayCss());
     }
 }

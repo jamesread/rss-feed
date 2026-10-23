@@ -49,6 +49,8 @@ final class SettingsControllerTest extends TestCase
             'dark_background' => '#000000',
             'autoplay_enabled' => true,
             'autoplay_seconds' => 45,
+            'custom_css_enabled' => false,
+            'custom_css' => '',
         ], $overrides);
     }
 
@@ -81,6 +83,8 @@ final class SettingsControllerTest extends TestCase
             ->where('general.default_dark_background', '#123')
             ->where('general.autoplay_enabled', false)
             ->where('general.autoplay_seconds', 30)
+            ->where('general.custom_css_enabled', false)
+            ->where('general.custom_css', '')
             ->where('autoplayIntervals', [10, 15, 30, 45, 60, 120]));
     }
 
@@ -101,13 +105,49 @@ final class SettingsControllerTest extends TestCase
             'dark_background' => '#abc',
             'autoplay_enabled' => '1',
             'autoplay_seconds' => '45',
+            'custom_css_enabled' => '0',
         ], $this->savedSettings());
 
         $this->get('/settings')->assertInertia(fn (Assert $page) => $page
             ->where('general.theme', 'light')
             ->where('general.dark_background', '#abc')
             ->where('general.autoplay_enabled', true)
-            ->where('general.autoplay_seconds', 45));
+            ->where('general.autoplay_seconds', 45)
+            ->where('general.custom_css_enabled', false)
+            ->where('general.custom_css', ''));
+    }
+
+    public function test_save_custom_css(): void
+    {
+        $this->putJson('/settings', $this->general([
+            'custom_css_enabled' => true,
+            'custom_css' => 'body { color: red; }',
+        ]))->assertNoContent();
+
+        $this->assertEquals('1', $this->savedSettings()['custom_css_enabled']);
+        $this->assertEquals('body { color: red; }', $this->savedSettings()['custom_css']);
+
+        $this->get('/settings')->assertInertia(fn (Assert $page) => $page
+            ->where('general.custom_css_enabled', true)
+            ->where('general.custom_css', 'body { color: red; }'));
+    }
+
+    public function test_disabled_custom_css_keeps_the_saved_rules(): void
+    {
+        $this->putJson('/settings', $this->general([
+            'custom_css_enabled' => true,
+            'custom_css' => 'body { color: red; }',
+        ]))->assertNoContent();
+        $this->putJson('/settings', $this->general([
+            'custom_css_enabled' => false,
+            'custom_css' => 'body { color: red; }',
+        ]))->assertNoContent();
+
+        $this->assertEquals('0', $this->savedSettings()['custom_css_enabled']);
+        $this->assertEquals('body { color: red; }', $this->savedSettings()['custom_css']);
+        $this->get('/settings')->assertInertia(fn (Assert $page) => $page
+            ->where('general.custom_css_enabled', false)
+            ->where('general.custom_css', 'body { color: red; }'));
     }
 
     public function test_invalid_values_are_rejected(): void
@@ -120,6 +160,8 @@ final class SettingsControllerTest extends TestCase
             ->assertStatus(422)->assertJsonValidationErrors('theme');
         $this->putJson('/settings', $this->general(['dark_background' => 'red', 'autoplay_seconds' => 10]))
             ->assertStatus(422)->assertJsonValidationErrors('dark_background');
+        $this->putJson('/settings', $this->general(['custom_css' => str_repeat('a', AppSettings::MAX_CUSTOM_CSS_LENGTH + 1)]))
+            ->assertStatus(422)->assertJsonValidationErrors('custom_css');
 
         $this->assertEquals('45', $this->savedSettings()['autoplay_seconds']);
     }

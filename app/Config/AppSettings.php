@@ -14,6 +14,7 @@ class AppSettings
     public const array THEMES = ['system', 'light', 'dark'];
     public const array AUTOPLAY_INTERVALS = [10, 15, 30, 45, 60, 120];
     public const int DEFAULT_AUTOPLAY_SECONDS = 30;
+    public const int MAX_CUSTOM_CSS_LENGTH = 50000;
     // The built-in dark page background (Tailwind gray-900), shown in the colour picker when none is set
     public const string DEFAULT_DARK_BACKGROUND = '#101828';
 
@@ -114,6 +115,37 @@ class AppSettings
     public function autoplaySeconds(): ?int
     {
         return $this->autoplayEnabled() ? $this->autoplayInterval() : null;
+    }
+
+    public function customCssEnabled(): bool
+    {
+        return $this->saved('custom_css_enabled') === '1';
+    }
+
+    public function savedCustomCss(): string
+    {
+        return (string) $this->saved('custom_css');
+    }
+
+    /**
+     * Sanitized CSS to inject after the theme, or null when custom CSS is off or empty.
+     */
+    public function overlayCss(): ?string
+    {
+        if (!$this->customCssEnabled()) {
+            return null;
+        }
+
+        $css = self::sanitizeCss($this->savedCustomCss());
+        return $css === '' ? null : $css;
+    }
+
+    public static function sanitizeCss(string $css): string
+    {
+        $css = str_replace("\0", '', $css);
+        $css = (string) preg_replace('/<\/style\b[^>]*>/i', '', $css);
+        $css = (string) preg_replace('/<\/style/i', '', $css);
+        return trim($css);
     }
 
     public function aiProvider(): string

@@ -74,6 +74,25 @@
                     <p v-if="errors.autoplay_seconds" class="mt-1 text-sm text-red-600 dark:text-red-400">{{ errors.autoplay_seconds }}</p>
                 </fieldset>
 
+                <fieldset>
+                    <legend class="font-bold mb-2 dark:text-gray-400">Custom CSS</legend>
+                    <p class="text-sm text-gray-600 dark:text-gray-500 mb-3">Rules overlay the theme and take priority over every page element.</p>
+                    <label class="flex items-center justify-between gap-3 max-w-xs text-gray-900 dark:text-gray-400 cursor-pointer mb-4">
+                        <span>Enable custom CSS</span>
+                        <input type="checkbox" class="peer sr-only" v-model="form.customCssEnabled">
+                        <span class="relative inline-block w-9 h-5 shrink-0 rounded-full bg-gray-300 dark:bg-dark-line transition peer-checked:bg-gray-800 dark:peer-checked:bg-gray-300 peer-focus-visible:ring-2 peer-focus-visible:ring-gray-500
+                                     after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-white dark:after:bg-dark-page after:transition peer-checked:after:translate-x-4"
+                              aria-hidden="true"></span>
+                    </label>
+                    <label v-if="form.customCssEnabled" class="block">
+                        <span class="sr-only">Custom CSS</span>
+                        <textarea v-model="form.customCss" rows="12" spellcheck="false" aria-label="Custom CSS"
+                                  placeholder="body { background: black; }"
+                                  class="w-full border border-gray-300 dark:border-dark-line rounded-sm px-2 py-1 bg-white dark:bg-dark-page font-mono text-xs leading-relaxed"></textarea>
+                    </label>
+                    <p v-if="errors.custom_css" class="mt-1 text-sm text-red-600 dark:text-red-400">{{ errors.custom_css }}</p>
+                </fieldset>
+
                 <div class="flex items-center gap-4">
                     <button type="submit" :disabled="saving"
                             class="rounded-sm border-2 px-4 py-1 font-bold text-gray-700 border-gray-300 hover:bg-gray-100 dark:text-gray-300 dark:border-dark-line dark:hover:bg-dark-raised disabled:opacity-50">
@@ -277,6 +296,8 @@
                     useDefaultBackground: !this.general.dark_background,
                     autoplayEnabled: this.general.autoplay_enabled,
                     autoplaySeconds: this.general.autoplay_seconds,
+                    customCssEnabled: this.general.custom_css_enabled,
+                    customCss: this.general.custom_css,
                 },
                 errors: {},
                 message: '',
@@ -325,6 +346,8 @@
                     dark_background: this.form.useDefaultBackground ? null : this.form.darkBackground,
                     autoplay_enabled: this.form.autoplayEnabled,
                     autoplay_seconds: this.form.autoplaySeconds,
+                    custom_css_enabled: this.form.customCssEnabled,
+                    custom_css: this.form.customCss,
                 });
                 this.saving = false;
                 this.showResult(result, 'Saved.');
