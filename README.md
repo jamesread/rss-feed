@@ -151,7 +151,7 @@ services:
 
 #### Image Tags
 
-The image `quay.io/michard/rss-feed` is published with these tags:
+The images `quay.io/michard/rss-feed` and `ghcr.io/smichard/rss-feed` are published with the same tags:
 
 - `latest`: the newest build of the `main` branch or the newest release, whichever was published last.
 - `sha-<commit>`: one tag per build, for example `sha-9fd2ade`, to pin an exact commit.

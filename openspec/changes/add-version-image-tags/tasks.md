@@ -25,5 +25,5 @@
   - The run is triggered by the tag and the tests pass.
   - quay.io gets `3.0.0-rc.1` and `sha-<sha>`.
   - The digest of `latest` is unchanged (compare `skopeo inspect` before and after).
-- [ ] 2.3 With the user's go-ahead, push the first release tag `v3.0.0`.
+- [x] 2.3 With the user's go-ahead, push the first release tag `v3.0.0`.
   Verify: quay.io gets `3.0.0`, `sha-<sha>` and `latest`, all with the same digest, and `docker pull quay.io/michard/rss-feed:3.0.0` works.
